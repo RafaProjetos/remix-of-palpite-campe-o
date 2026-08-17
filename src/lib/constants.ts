@@ -1,6 +1,5 @@
 export const SERIE_A_TEAMS = [
   "ATHLETICO PARANAENSE",
-  "ATLÉTICO GOIANIENSE",
   "ATLÉTICO MINEIRO",
   "BAHIA",
   "BOTAFOGO",
@@ -16,6 +15,7 @@ export const SERIE_A_TEAMS = [
   "INTERNACIONAL",
   "JUVENTUDE",
   "PALMEIRAS",
+  "REMO",
   "SÃO PAULO",
   "VASCO",
   "VITÓRIA"
