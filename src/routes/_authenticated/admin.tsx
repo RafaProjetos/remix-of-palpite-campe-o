@@ -76,7 +76,7 @@ function Admin() {
 
   const overview = useQuery({
     queryKey: ["admin-overview", roundId],
-    queryFn: () => overviewFn({ data: { roundId: roundId! } }),
+    queryFn: () => (roundId ? overviewFn({ data: { roundId } }) : null),
     enabled: Boolean(roundId) && Boolean(status.data?.isAdmin),
   });
 
