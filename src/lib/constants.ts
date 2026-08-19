@@ -10,13 +10,13 @@ export const SERIE_A_TEAMS = [
   "CUIABÁ",
   "FLAMENGO",
   "FLUMINENSE",
-  "FORTALEZA",
   "GRÊMIO",
   "INTERNACIONAL",
-  "JUVENTUDE",
+  "MIRASSOL",
   "PALMEIRAS",
   "REMO",
   "SÃO PAULO",
+  "SANTOS",
   "VASCO",
   "VITÓRIA"
 ].sort();
