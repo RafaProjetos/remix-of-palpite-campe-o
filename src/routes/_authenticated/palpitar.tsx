@@ -3,22 +3,24 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { getCurrentRound, getMyBet, getMyStatus, saveBet, startPayment } from "@/lib/palpite.functions";
+import { getCurrentRound, getMyBet, getMyStatus, saveBet, startPayment, getLeagues, getLeagueStats } from "@/lib/palpite.functions";
 import { useNavigate } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
 import { TeamBadge } from "@/components/team-badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Trophy, Users, Info } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/palpitar")({
   head: () => ({
     meta: [
       { title: "Meu palpite — Palpite da Rodada" },
-      { name: "description", content: "Informe o placar dos 10 jogos da rodada e confirme sua aposta." },
+      { name: "description", content: "Escolha sua liga, informe o placar dos 10 jogos e confirme sua aposta." },
       { property: "og:title", content: "Meu palpite — Palpite da Rodada" },
-      { property: "og:description", content: "Preencha os placares e pague sua aposta da rodada." },
+      { property: "og:description", content: "Participe das ligas gratuitas e pagas e ganhe prêmios." },
     ],
   }),
   component: Palpitar,
@@ -31,11 +33,14 @@ function Palpitar() {
   const carregarRodada = useServerFn(getCurrentRound);
   const carregarAposta = useServerFn(getMyBet);
   const carregarStatus = useServerFn(getMyStatus);
+  const carregarLigas = useServerFn(getLeagues);
+  const carregarLeagueStats = useServerFn(getLeagueStats);
   const salvar = useServerFn(saveBet);
   const pagar = useServerFn(startPayment);
 
   const [placares, setPlacares] = useState<Record<string, Placar>>({});
   const [enviando, setEnviando] = useState(false);
+  const [activeLeagueType, setActiveLeagueType] = useState<string>("free");
 
   const rodada = useQuery({ queryKey: ["rodada-atual"], queryFn: () => carregarRodada({}) });
   
