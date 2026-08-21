@@ -126,13 +126,15 @@ export const acceptTerms = createServerFn({ method: "POST" })
     z.object({ fullName: z.string().trim().max(120).nullable().optional(), phone: z.string().trim().max(30).nullable().optional() }).parse(d),
   )
   .handler(async ({ context, data }) => {
+    const update: any = {
+      terms_accepted_at: new Date().toISOString(),
+    };
+    if (data.fullName !== undefined) update.full_name = data.fullName;
+    if (data.phone !== undefined) update.phone = data.phone;
+
     const { error } = await context.supabase
       .from("profiles")
-      .update({
-        full_name: data.fullName,
-        phone: data.phone ?? null,
-        terms_accepted_at: new Date().toISOString(),
-      })
+      .update(update)
       .eq("id", context.userId);
     if (error) throw new Error(error.message);
     return { ok: true };
