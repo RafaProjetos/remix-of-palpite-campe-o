@@ -50,9 +50,6 @@ function Regulamento() {
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) return;
       setLogado(true);
-        if (statusQuery.data) {
-          setJaAceito(Boolean(statusQuery.data.profile?.terms_accepted_at));
-        }
     });
   }, [status]);
 
