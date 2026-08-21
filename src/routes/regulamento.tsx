@@ -133,38 +133,35 @@ function Regulamento() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl">Uso de dados e autorização</CardTitle>
+            <CardTitle className="text-xl">Seus dados estão em boas mãos!</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground sm:text-base">
-              Seus dados (nome, e-mail, telefone e palpites) são utilizados restritamente dentro do aplicativo
-              Palpite da Rodada, para identificar sua aposta, processar o pagamento e exibir seu nome nos
-              rankings. Não compartilhamos seus dados com terceiros.
+              Relaxa, a gente cuida bem das suas infos! Seu nome, e-mail e telefone servem só pra gente saber quem é você no ranking e te mandar o prêmio via Pix. Não passamos nada pra frente, tudo fica aqui no Palpite da Rodada seguindo as regras da LGPD.
             </p>
 
             {!logado && (
-              <p className="rounded-lg bg-muted p-3 text-sm sm:text-base">
-                Faça seu cadastro ou entre na plataforma para registrar o aceite do regulamento.
+              <p className="rounded-lg bg-muted p-3 text-sm sm:text-base font-medium">
+                Dá um pulo no cadastro ou faz o login pra gente liberar o seu aceite!
               </p>
             )}
 
             {logado && jaAceito && (
-              <p className="rounded-lg bg-primary/10 p-3 text-sm font-medium text-primary sm:text-base">
-                Você já aceitou o regulamento. Pode palpitar à vontade!
+              <p className="rounded-lg bg-primary/10 p-3 text-sm font-bold text-primary sm:text-base text-center">
+                Boa! Você já tá no time. Regulamento aceito, agora é só brilhar nos palpites! 🚀
               </p>
             )}
 
             {logado && !jaAceito && (
               <div className="space-y-6">
-                <label className="flex items-start gap-3 text-sm sm:text-base">
+                <label className="flex items-start gap-3 text-sm sm:text-base cursor-pointer">
                   <Checkbox checked={ciente} onCheckedChange={(v) => setCiente(Boolean(v))} className="mt-1" />
-                  <span>
-                    Li e estou ciente das regras do Palpite da Rodada e autorizo o uso dos meus dados
-                    restritamente dentro do aplicativo.
+                  <span className="font-medium">
+                    Li tudo, tô ciente das regras e autorizo o uso dos meus dados pra gente jogar junto!
                   </span>
                 </label>
-                <Button onClick={confirmar} disabled={enviando} className="w-full sm:w-auto">
-                  {enviando ? "Salvando..." : "Aceito os termos do regulamento."}
+                <Button onClick={confirmar} disabled={enviando} className="w-full sm:w-auto font-bold text-lg py-6">
+                  {enviando ? "Salvando seu aceite..." : "Tô dentro! Aceito o regulamento."}
                 </Button>
               </div>
             )}
