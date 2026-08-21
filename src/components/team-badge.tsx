@@ -4,8 +4,10 @@ export function TeamBadge({
   name, 
   logo, 
   className, 
-  position = "away" 
+  position = "away",
+  size = "sm"
 }: { 
+
   name: string; 
   logo?: string | null; 
   className?: string;
