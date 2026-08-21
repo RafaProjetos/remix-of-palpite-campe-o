@@ -281,21 +281,21 @@ function Palpitar() {
                         {f.venue && <><span className="mx-1.5">•</span><span>{f.venue}</span></>}
                       </div>
 
-                      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1 sm:gap-2">
                         <div className="flex justify-end overflow-hidden">
-                          <TeamBadge name={homeName} logo={homeLogo} position="home" className="text-xs sm:text-sm" />
+                          <TeamBadge name={homeName} logo={homeLogo} position="home" className="text-[10px] sm:text-sm" />
                         </div>
-                        <div className="flex items-center gap-1 sm:gap-2">
+                        <div className="flex items-center gap-1">
                           <Input
-                            className="h-8 w-10 px-1 text-center sm:h-10 sm:w-12 sm:px-3"
+                            className="h-7 w-8 px-0.5 text-center text-xs sm:h-10 sm:w-12 sm:px-3 sm:text-base"
                             inputMode="numeric"
                             disabled={pago || !aceitou || isClosed}
                             value={placares[matchId]?.home ?? ""}
                             onChange={(e) => setPlacar(matchId, "home", e.target.value)}
                           />
-                          <span className="text-xs text-muted-foreground sm:text-sm">x</span>
+                          <span className="text-[10px] text-muted-foreground sm:text-sm">x</span>
                           <Input
-                            className="h-8 w-10 px-1 text-center sm:h-10 sm:w-12 sm:px-3"
+                            className="h-7 w-8 px-0.5 text-center text-xs sm:h-10 sm:w-12 sm:px-3 sm:text-base"
                             inputMode="numeric"
                             disabled={pago || !aceitou || isClosed}
                             value={placares[matchId]?.away ?? ""}
@@ -303,7 +303,7 @@ function Palpitar() {
                           />
                         </div>
                         <div className="flex justify-start overflow-hidden">
-                          <TeamBadge name={awayName} logo={awayLogo} position="away" className="text-xs sm:text-sm" />
+                          <TeamBadge name={awayName} logo={awayLogo} position="away" className="text-[10px] sm:text-sm" />
                         </div>
                       </div>
                     </div>
