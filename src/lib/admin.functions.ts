@@ -43,7 +43,7 @@ export const adminOverview = createServerFn({ method: "GET" })
     const profiles = await supabase.from("profiles").select("id, full_name, email, phone");
     const { data: stats } = await supabaseAdmin.rpc("league_stats", { 
       _round_id: data.roundId,
-      _league_type: (data.leagueType || 'ouro') as any 
+      _league_type: (data.leagueType || 'ouro') as "free" | "bronze" | "prata" | "ouro"
     });
     
     const byId = new Map((profiles.data ?? []).map((p: any) => [p.id, p]));
