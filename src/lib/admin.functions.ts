@@ -14,18 +14,38 @@ async function assertAdmin(context: any) {
 
 export const adminOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { roundId: string }) => z.object({ roundId: z.string().uuid() }).parse(d))
+  .inputValidator((d: { roundId: string; leagueType?: string }) => z.object({ roundId: z.string().uuid(), leagueType: z.string().optional() }).parse(d))
   .handler(async ({ context, data }) => {
     await assertAdmin(context);
     const { supabase } = context;
-    const bets = await supabase
-      .from("bets")
-      .select("id, user_id, status, amount, total_points, created_at, paid_at")
-      .eq("round_id", data.roundId)
-      .order("total_points", { ascending: false });
-    const profiles = await supabase.from("profiles").select("id, full_name, email, phone");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: stats } = await supabaseAdmin.rpc("round_stats", { _round_id: data.roundId });
+    
+    let leagueId: string | undefined;
+    if (data.leagueType) {
+      const { data: league } = await supabase.from("leagues").select("id").eq("type", data.leagueType).maybeSingle();
+      leagueId = league?.id;
+    }
+
+    let query = supabase
+      .from("bets")
+      .select("id, user_id, status, amount, total_points, full_hits, winner_hits, created_at, paid_at")
+      .eq("round_id", data.roundId)
+      .order("total_points", { ascending: false })
+      .order("full_hits", { ascending: false })
+      .order("winner_hits", { ascending: false })
+      .order("created_at", { ascending: true });
+
+    if (leagueId) {
+      query = query.eq("league_id", leagueId);
+    }
+
+    const bets = await query;
+    const profiles = await supabase.from("profiles").select("id, full_name, email, phone");
+    const { data: stats } = await supabaseAdmin.rpc("league_stats", { 
+      _round_id: data.roundId,
+      _league_type: (data.leagueType || 'ouro') as any 
+    });
+    
     const byId = new Map((profiles.data ?? []).map((p: any) => [p.id, p]));
     return {
       participants: (bets.data ?? []).map((b: any) => ({
