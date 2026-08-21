@@ -81,12 +81,13 @@ function Palpitar() {
   }
 
   async function salvarGratuito() {
-    const picks = matches.map((m) => ({
-      matchId: m.id as string,
+    const currentMatches = fixturesQuery.data?.fixtures || matches;
+    const picks = currentMatches.map((m: any) => ({
+      matchId: (m.id || m.match_id) as string,
       home: Number(placares[m.id]?.home ?? ""),
       away: Number(placares[m.id]?.away ?? ""),
     }));
-    if (picks.some((p) => Number.isNaN(p.home) || Number.isNaN(p.away))) {
+    if (picks.some((p: any) => Number.isNaN(p.home) || Number.isNaN(p.away))) {
       toast.error("Preencha o placar de todos os jogos.");
       return;
     }
