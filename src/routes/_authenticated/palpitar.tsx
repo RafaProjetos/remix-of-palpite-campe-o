@@ -44,6 +44,9 @@ function Palpitar() {
 
   const rodada = useQuery({ queryKey: ["rodada-atual"], queryFn: () => carregarRodada({}) });
   
+  const ligas = useQuery({ queryKey: ["leagues"], queryFn: () => carregarLigas({}) });
+  const activeLeague = ligas.data?.find(l => l.type === activeLeagueType);
+
   const fixturesQuery = useQuery({
     queryKey: ["fixtures-atuais"],
     queryFn: async () => {
@@ -57,13 +60,23 @@ function Palpitar() {
   const roundId = rodada.data?.round?.id as string | undefined;
 
   const aposta = useQuery({
-    queryKey: ["minha-aposta", roundId],
-    queryFn: () => carregarAposta({ data: { roundId: roundId! } }),
+    queryKey: ["minha-aposta", roundId, activeLeague?.id],
+    queryFn: () => carregarAposta({ data: { roundId: roundId!, leagueId: activeLeague?.id } }),
+    enabled: Boolean(roundId) && Boolean(activeLeague?.id),
+  });
+
+  const leagueStats = useQuery({
+    queryKey: ["league-stats", roundId, activeLeagueType],
+    queryFn: () => carregarLeagueStats({ data: { roundId: roundId!, leagueType: activeLeagueType } }),
     enabled: Boolean(roundId),
+    refetchInterval: 10000,
   });
 
   useEffect(() => {
-    if (!aposta.data?.picks?.length) return;
+    if (!aposta.data?.picks?.length) {
+      setPlacares({});
+      return;
+    }
     const next: Record<string, Placar> = {};
     for (const p of aposta.data.picks as any[]) {
       next[p.match_id] = { home: String(p.home_score), away: String(p.away_score) };
@@ -74,8 +87,6 @@ function Palpitar() {
   const matches = (rodada.data?.matches ?? []) as any[];
   const pago = aposta.data?.bet?.status === "paid";
   const aceitou = Boolean(status.data?.profile?.terms_accepted_at);
-  const stats = rodada.data?.stats as any;
-  const lotado = Number(stats?.paid_count ?? 0) >= Number(stats?.max_players ?? 100);
 
   const closesAt = rodada.data?.round?.closes_at ? new Date(rodada.data.round.closes_at) : null;
   const isClosed = !!(rodada.data?.round?.status !== "open" || (closesAt && closesAt < new Date()));
@@ -85,7 +96,8 @@ function Palpitar() {
     setPlacares((p) => ({ ...p, [matchId]: { ...(p[matchId] ?? { home: "", away: "" }), [campo]: limpo } }));
   }
 
-  async function salvarGratuito() {
+  async function salvarPalpite() {
+    if (!activeLeague) return;
     const currentMatches = fixturesQuery.data?.fixtures || matches;
     const picks = currentMatches.map((m: any) => ({
       matchId: (m.id || m.match_id) as string,
@@ -98,10 +110,16 @@ function Palpitar() {
     }
     setEnviando(true);
     try {
-      await salvar({ data: { roundId: roundId!, picks } });
-      toast.success("Seus palpites foram salvos gratuitamente!");
-      await aposta.refetch();
-      navigate({ to: "/meus-palpites" });
+      const { betId } = await salvar({ data: { roundId: roundId!, leagueId: activeLeague.id, picks } });
+      
+      if (activeLeague.type !== 'free') {
+        const { initPoint } = await pagar({ data: { betId, origin: window.location.origin } });
+        window.location.href = initPoint;
+      } else {
+        toast.success("Seus palpites foram salvos na Liga Free!");
+        await aposta.refetch();
+        navigate({ to: "/meus-palpites" });
+      }
     } catch (e: any) {
       toast.error(e?.message ?? "Não foi possível salvar.");
     } finally {
@@ -109,28 +127,17 @@ function Palpitar() {
     }
   }
 
-  async function entrarNoPremio() {
-    const currentMatches = fixturesQuery.data?.fixtures || matches;
-    const picks = currentMatches.map((m: any) => ({
-      matchId: (m.id || m.match_id) as string,
-      home: Number(placares[m.id]?.home ?? ""),
-      away: Number(placares[m.id]?.away ?? ""),
-    }));
-    if (picks.some((p: any) => Number.isNaN(p.home) || Number.isNaN(p.away))) {
-      toast.error("Preencha o placar de todos os jogos antes de participar do prêmio.");
-      return;
-    }
-    setEnviando(true);
-    try {
-      const { betId } = await salvar({ data: { roundId: roundId!, picks } });
-      const { initPoint } = await pagar({ data: { betId, origin: window.location.origin } });
-      window.location.href = initPoint;
-    } catch (e: any) {
-      toast.error(e?.message ?? "Não foi possível iniciar o pagamento.");
-    } finally {
-      setEnviando(false);
-    }
-  }
+  const netPot = Number(leagueStats.data?.net_pot ?? 0);
+  const participants = Number(leagueStats.data?.total_participants ?? 0);
+
+  const premiações = [
+    { pos: "1º", pct: 0.35 },
+    { pos: "2º", pct: 0.20 },
+    { pos: "3º", pct: 0.12 },
+    { pos: "4º", pct: 0.08 },
+    { pos: "5º", pct: 0.06 },
+    { pos: "6º ao 10º", pct: 0.038 },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
