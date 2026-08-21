@@ -74,9 +74,11 @@ function Admin() {
   const reabrirRodadaFn = useServerFn(adminReopenRound);
   const excluirUsuarioFn = useServerFn(adminDeleteUser);
 
+  const [activeLeagueType, setActiveLeagueType] = useState<string>("free");
+
   const overview = useQuery({
-    queryKey: ["admin-overview", roundId],
-    queryFn: () => (roundId ? overviewFn({ data: { roundId } }) : null),
+    queryKey: ["admin-overview", roundId, activeLeagueType],
+    queryFn: () => (roundId ? overviewFn({ data: { roundId, leagueType: activeLeagueType } }) : null),
     enabled: Boolean(roundId) && Boolean(status.data?.isAdmin),
   });
 
