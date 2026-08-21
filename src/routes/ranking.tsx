@@ -1,10 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { getCurrentRound, getRankings } from "@/lib/palpite.functions";
+import { getCurrentRound, getRankings, getLeagues } from "@/lib/palpite.functions";
 import { SiteHeader } from "@/components/site-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trophy, Users, Star } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
+import { Trophy, Users, Star, Clock } from "lucide-react";
+import { useState } from "react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export const Route = createFileRoute("/ranking")({
   head: () => ({
@@ -12,7 +14,7 @@ export const Route = createFileRoute("/ranking")({
       { title: "Ranking — Palpite da Rodada" },
       {
         name: "description",
-        content: "Acompanhe em tempo real o ranking da rodada e o ranking geral do bolão do Brasileirão.",
+        content: "Acompanhe em tempo real o ranking da rodada com critérios de desempate detalhados.",
       },
       { property: "og:title", content: "Ranking — Palpite da Rodada" },
       { property: "og:description", content: "Ranking da rodada e ranking geral acumulado do bolão." },
@@ -24,20 +26,29 @@ export const Route = createFileRoute("/ranking")({
 
 function RankingPage() {
   const { round } = Route.useLoaderData();
-  const { data } = useQuery({
-    queryKey: ["rankings", round?.id ?? null],
-    queryFn: () => getRankings({ data: { roundId: round?.id ?? null } }),
+  const [activeLeagueType, setActiveLeagueType] = useState<string>("free");
+  
+  const leaguesQuery = useQuery({
+    queryKey: ["leagues"],
+    queryFn: () => getLeagues({}),
+  });
+
+  const activeLeagueId = leaguesQuery.data?.find(l => l.type === activeLeagueType)?.id;
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["rankings", round?.id, activeLeagueId],
+    queryFn: () => getRankings({ data: { roundId: round?.id ?? null, leagueId: activeLeagueId ?? null } }),
     refetchInterval: 30_000,
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
-      <main className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:py-10">
+      <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:py-10">
         <header className="space-y-2 text-center sm:text-left">
-          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Rankings</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Classificação</h1>
           <p className="text-muted-foreground text-sm sm:text-base">
-            Acompanhe a classificação da rodada e o ranking geral.
+            Transparência total nos resultados e critérios de desempate.
           </p>
         </header>
 
