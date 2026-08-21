@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_cache: {
+        Row: {
+          fetched_at: string
+          key: string
+          payload: Json
+        }
+        Insert: {
+          fetched_at?: string
+          key: string
+          payload: Json
+        }
+        Update: {
+          fetched_at?: string
+          key?: string
+          payload?: Json
+        }
+        Relationships: []
+      }
       bet_picks: {
         Row: {
           away_score: number
