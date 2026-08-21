@@ -267,7 +267,7 @@ function Palpitar() {
                       size="lg"
                       className="w-full sm:w-auto"
                       onClick={salvarGratuito}
-                      disabled={enviando || !aceitou || matches.length === 0 || isClosed}
+                      disabled={enviando || !aceitou || (matches.length === 0 && !fixturesQuery.data?.fixtures) || isClosed}
                     >
                       {enviando ? "Processando..." : "Salvar palpite gratuito"}
                     </Button>
