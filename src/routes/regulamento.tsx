@@ -66,6 +66,8 @@ function Regulamento() {
     try {
       await aceitar({ data: {} });
       toast.success("Regulamento aceito! Bons palpites.");
+      // Forçar atualização do estado global do status antes de navegar
+      await status.refetch();
       navigate({ to: "/palpitar" });
     } catch (e: any) {
       toast.error(e?.message ?? "Não foi possível salvar o aceite.");
