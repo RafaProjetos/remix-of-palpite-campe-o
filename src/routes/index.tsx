@@ -284,7 +284,7 @@ function Home() {
             <p>© 2026 Palpite da Rodada. Todos os direitos reservados.</p>
             <div className="flex gap-4">
               <Link to="/regulamento" className="hover:text-primary underline">Regulamento</Link>
-              <Link to="/privacidade" className="hover:text-primary underline">Privacidade</Link>
+              <Link to="/regulamento" className="hover:text-primary underline">Privacidade</Link>
             </div>
           </div>
         </div>
