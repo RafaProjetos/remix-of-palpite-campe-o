@@ -22,7 +22,7 @@ export const adminOverview = createServerFn({ method: "GET" })
     
     let leagueId: string | undefined;
     if (data.leagueType) {
-      const { data: league } = await supabase.from("leagues").select("id").eq("type", data.leagueType).maybeSingle();
+      const { data: league } = await supabase.from("leagues").select("id").eq("type", data.leagueType as any).maybeSingle();
       leagueId = league?.id;
     }
 
