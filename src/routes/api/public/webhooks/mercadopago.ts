@@ -37,17 +37,10 @@ export const Route = createFileRoute("/api/public/webhooks/mercadopago")({
           if (payment.status === "approved") {
             const bet = await supabaseAdmin.from("bets").select("round_id, status").eq("id", betId).maybeSingle();
             if (bet.data && bet.data.status !== "paid") {
-              const { data: stats } = await supabaseAdmin.rpc("round_stats", {
-                _round_id: bet.data.round_id,
-              });
-              const paid = Number((stats as any)?.[0]?.paid_count ?? 0);
-              const max = Number((stats as any)?.[0]?.max_players ?? 100);
-              if (paid < max) {
-                await supabaseAdmin
-                  .from("bets")
-                  .update({ status: "paid", paid_at: new Date().toISOString() })
-                  .eq("id", betId);
-              }
+              await supabaseAdmin
+                .from("bets")
+                .update({ status: "paid", paid_at: new Date().toISOString() })
+                .eq("id", betId);
             }
           }
 
