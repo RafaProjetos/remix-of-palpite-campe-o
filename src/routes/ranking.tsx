@@ -70,7 +70,7 @@ function RankingPage() {
                     {activeLeague?.name || "Liga"} - Rodada {round?.number ?? ""}
                   </CardTitle>
                   <CardDescription>
-                    Critérios: Pontos > Placares > Vencedor > Data > Nome
+                    Critérios: Pontos {" > "} Placares {" > "} Vencedor {" > "} Data {" > "} Nome
                   </CardDescription>
                 </div>
                 {activeLeagueType !== 'free' && (
