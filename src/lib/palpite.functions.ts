@@ -46,45 +46,27 @@ export const getCurrentRound = createServerFn({ method: "GET" }).handler(async (
 });
 
 export const getRankings = createServerFn({ method: "GET" })
-  .inputValidator((d: { roundId?: string | null }) => d)
+  .inputValidator((d: { roundId?: string | null; leagueType?: string | null }) =>
+    z.object({ roundId: z.string().uuid().nullable().optional(), leagueType: z.string().nullable().optional() }).parse(d),
+  )
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const supabase = supabaseAdmin;
     const general = await supabase.rpc("general_ranking");
     let round: any[] = [];
-    let paid: any[] = [];
+    
     if (data.roundId) {
-      const r = await supabase.rpc("round_ranking", { _round_id: data.roundId });
-      round = (r.data as any[]) ?? [];
-
-      // O ranking premiado deve ser alimentado apenas ao final da rodada (status validated)
-      const roundData = await supabase.from("rounds").select("status").eq("id", data.roundId).maybeSingle();
-      const isRoundValidated = roundData.data?.status === "validated";
-
-      if (isRoundValidated) {
-        const { data: paidBets } = await supabase
-          .from("bets")
-          .select("user_id, total_points, profiles(full_name), status")
-          .eq("round_id", data.roundId)
-          .eq("status", "paid")
-          .order("total_points", { ascending: false })
-          .order("created_at", { ascending: true })
-          .limit(100);
-
-        paid = (paidBets ?? []).map((b: any) => ({
-          user_id: b.user_id,
-          full_name: b.profiles?.full_name ?? "Usuário",
-          total_points: b.total_points,
-          bet_status: b.status
-        }));
-      } else {
-        paid = [];
-      }
+      const type = data.leagueType || "free";
+      const { data: rankingData } = await supabase.rpc("round_league_ranking", {
+        _round_id: data.roundId,
+        _league_type: type as any,
+      });
+      round = (rankingData as any[]) ?? [];
     }
+
     return {
       general: (general.data as any[]) ?? [],
       round,
-      paid,
     };
   });
 
