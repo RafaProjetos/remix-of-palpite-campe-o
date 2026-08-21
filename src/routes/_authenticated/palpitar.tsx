@@ -281,9 +281,16 @@ function Palpitar() {
                         {f.venue && <><span className="mx-1.5">•</span><span>{f.venue}</span></>}
                       </div>
 
-                      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1 sm:gap-2">
-                        <div className="flex justify-end overflow-hidden">
-                          <TeamBadge name={homeName} logo={homeLogo} position="home" className="text-[10px] sm:text-sm" />
+                      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1 sm:gap-4">
+                        <div className="flex justify-center min-w-0">
+                          <TeamBadge 
+                            name={homeName} 
+                            logo={homeLogo} 
+                            position="home" 
+                            className="text-[10px] sm:text-sm" 
+                            layout="vertical" 
+                            hideNameOnMobile={true}
+                          />
                         </div>
                         <div className="flex items-center gap-1">
                           <Input
@@ -302,8 +309,15 @@ function Palpitar() {
                             onChange={(e) => setPlacar(matchId, "away", e.target.value)}
                           />
                         </div>
-                        <div className="flex justify-start overflow-hidden">
-                          <TeamBadge name={awayName} logo={awayLogo} position="away" className="text-[10px] sm:text-sm" />
+                        <div className="flex justify-center min-w-0">
+                          <TeamBadge 
+                            name={awayName} 
+                            logo={awayLogo} 
+                            position="away" 
+                            className="text-[10px] sm:text-sm" 
+                            layout="vertical" 
+                            hideNameOnMobile={true}
+                          />
                         </div>
                       </div>
                     </div>
