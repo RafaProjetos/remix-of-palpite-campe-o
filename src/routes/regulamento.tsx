@@ -41,8 +41,6 @@ function Regulamento() {
   const status = useServerFn(getMyStatus);
   const [logado, setLogado] = useState(false);
   const [jaAceito, setJaAceito] = useState(false);
-  const [nome, setNome] = useState("");
-  const [telefone, setTelefone] = useState("");
   const [ciente, setCiente] = useState(false);
   const [enviando, setEnviando] = useState(false);
 
