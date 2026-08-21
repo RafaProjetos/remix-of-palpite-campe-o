@@ -14,8 +14,8 @@ export function TeamBadge({
   position?: "home" | "away";
   size?: "sm" | "md" | "lg";
 }) {
-  const iconSize = size === "lg" ? "h-10 w-10 sm:h-12 sm:w-12" : size === "md" ? "h-8 w-8 sm:h-10 sm:w-10" : "h-6 w-6 sm:h-8 sm:w-8";
-  const textSize = size === "lg" ? "text-sm sm:text-lg" : size === "md" ? "text-xs sm:text-base" : "text-xs sm:text-sm";
+  const iconSize = size === "lg" ? "h-8 w-8 sm:h-12 sm:w-12" : size === "md" ? "h-6 w-6 sm:h-10 sm:w-10" : "h-5 w-5 sm:h-8 sm:w-8";
+  const textSize = size === "lg" ? "text-xs sm:text-lg" : size === "md" ? "text-[10px] sm:text-base" : "text-[10px] sm:text-sm";
 
   return (
     <div className={cn(

@@ -51,7 +51,7 @@ function Home() {
             <Badge variant="outline" className="mb-6 border-accent/50 bg-accent/10 text-accent-foreground px-4 py-1.5 text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
               Brasileirão Série A 2026
             </Badge>
-            <h1 className="max-w-4xl font-logo text-4xl leading-tight tracking-tight sm:text-6xl md:text-7xl">
+            <h1 className="max-w-4xl font-logo text-3xl leading-tight tracking-tight sm:text-6xl md:text-7xl">
               Transforme seus palpites em <span className="text-accent underline decoration-accent/30 underline-offset-8">prêmios reais</span>.
             </h1>
             <p className="mt-8 max-w-2xl text-lg text-primary-foreground/90 sm:text-xl leading-relaxed">
@@ -75,20 +75,20 @@ function Home() {
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
             <Card className="border-none shadow-lg bg-card/50 backdrop-blur-sm transition-transform hover:-translate-y-1">
               <CardContent className="pt-6 text-center">
-                <p className="text-4xl font-extrabold text-primary sm:text-5xl">R$ {(pagos * 50 * 0.9).toLocaleString('pt-BR')}</p>
-                <p className="mt-2 text-sm font-medium text-muted-foreground uppercase tracking-wider">Total em Prêmios (Liga Ouro)</p>
+                <p className="text-2xl font-extrabold text-primary sm:text-5xl">R$ {(pagos * 50 * 0.9).toLocaleString('pt-BR')}</p>
+                <p className="mt-2 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Total em Prêmios (Liga Ouro)</p>
               </CardContent>
             </Card>
             <Card className="border-none shadow-lg bg-card/50 backdrop-blur-sm transition-transform hover:-translate-y-1">
               <CardContent className="pt-6 text-center">
-                <p className="text-4xl font-extrabold text-primary sm:text-5xl">{pagos}</p>
-                <p className="mt-2 text-sm font-medium text-muted-foreground uppercase tracking-wider">Apostadores na Rodada</p>
+                <p className="text-2xl font-extrabold text-primary sm:text-5xl">{pagos}</p>
+                <p className="mt-2 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Apostadores na Rodada</p>
               </CardContent>
             </Card>
             <Card className="border-none shadow-lg bg-card/50 backdrop-blur-sm transition-transform hover:-translate-y-1">
               <CardContent className="pt-6 text-center">
-                <p className="text-4xl font-extrabold text-primary sm:text-5xl">30 pts</p>
-                <p className="mt-2 text-sm font-medium text-muted-foreground uppercase tracking-wider">Por Placar Exato</p>
+                <p className="text-2xl font-extrabold text-primary sm:text-5xl">30 pts</p>
+                <p className="mt-2 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Por Placar Exato</p>
               </CardContent>
             </Card>
           </div>
@@ -152,7 +152,7 @@ function Home() {
           <CardHeader className="flex flex-col space-y-4 border-b pb-6 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
             <div>
               <p className="text-sm font-bold uppercase tracking-widest text-primary mb-1">Próximos Jogos</p>
-              <CardTitle className="text-2xl font-extrabold sm:text-3xl">
+              <CardTitle className="text-xl font-extrabold sm:text-3xl">
                 {round ? round.title || `Rodada ${round.number}` : "Aguardando rodada..."}
               </CardTitle>
             </div>

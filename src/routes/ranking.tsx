@@ -116,14 +116,14 @@ function RankingPage() {
                               </span>
                             </TableCell>
                             <TableCell>
-                              <div className="flex flex-col">
-                                <span className="font-medium">{r.display_name || "Participante"}</span>
+                              <div className="flex flex-col min-w-0">
+                                <span className="font-medium truncate text-xs sm:text-sm">{r.display_name || "Participante"}</span>
                                 {r.row_position <= 10 && activeLeagueType !== 'free' && (
-                                  <span className="text-[10px] text-yellow-600 font-bold uppercase tracking-tighter">Zona de Premiação</span>
+                                  <span className="text-[8px] sm:text-[10px] text-yellow-600 font-bold uppercase tracking-tighter">Zona de Premiação</span>
                                 )}
                               </div>
                             </TableCell>
-                            <TableCell className="text-center font-bold text-primary">{r.total_points}</TableCell>
+                            <TableCell className="text-center font-bold text-primary text-xs sm:text-base">{r.total_points}</TableCell>
                             <TableCell className="text-center hidden sm:table-cell">{r.full_hits}</TableCell>
                             <TableCell className="text-center hidden sm:table-cell">{r.winner_hits}</TableCell>
                             <TableCell className="text-right text-xs text-muted-foreground hidden md:table-cell">
