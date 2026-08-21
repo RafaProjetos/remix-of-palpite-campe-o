@@ -4,6 +4,29 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 /* ---------------------------------- público --------------------------------- */
 
+export const getLeagues = createServerFn({ method: "GET" }).handler(async () => {
+  const { publicClient } = await import("./palpite.server");
+  const supabase = publicClient();
+  const { data: leagues } = await supabase
+    .from("leagues")
+    .select("*")
+    .order("entry_fee", { ascending: true });
+  return leagues ?? [];
+});
+
+export const getLeagueStats = createServerFn({ method: "GET" })
+  .inputValidator((d: { roundId: string; leagueType: string }) =>
+    z.object({ roundId: z.string().uuid(), leagueType: z.string() }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: stats } = await supabaseAdmin.rpc("league_stats", {
+      _round_id: data.roundId,
+      _league_type: data.leagueType as any,
+    });
+    return (stats as any)?.[0] ?? null;
+  });
+
 export const getCurrentRound = createServerFn({ method: "GET" }).handler(async () => {
   const { publicClient } = await import("./palpite.server");
   const supabase = publicClient();
@@ -19,51 +42,31 @@ export const getCurrentRound = createServerFn({ method: "GET" }).handler(async (
     .select("*")
     .eq("round_id", round.id)
     .order("position");
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: stats } = await supabaseAdmin.rpc("round_stats", { _round_id: round.id });
-  return { round, matches: matches ?? [], stats: (stats as any)?.[0] ?? null };
+  return { round, matches: matches ?? [] };
 });
 
 export const getRankings = createServerFn({ method: "GET" })
-  .inputValidator((d: { roundId?: string | null }) => d)
+  .inputValidator((d: { roundId?: string | null; leagueType?: string | null }) =>
+    z.object({ roundId: z.string().uuid().nullable().optional(), leagueType: z.string().nullable().optional() }).parse(d),
+  )
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const supabase = supabaseAdmin;
     const general = await supabase.rpc("general_ranking");
     let round: any[] = [];
-    let paid: any[] = [];
+    
     if (data.roundId) {
-      const r = await supabase.rpc("round_ranking", { _round_id: data.roundId });
-      round = (r.data as any[]) ?? [];
-
-      // O ranking premiado deve ser alimentado apenas ao final da rodada (status validated)
-      const roundData = await supabase.from("rounds").select("status").eq("id", data.roundId).maybeSingle();
-      const isRoundValidated = roundData.data?.status === "validated";
-
-      if (isRoundValidated) {
-        const { data: paidBets } = await supabase
-          .from("bets")
-          .select("user_id, total_points, profiles(full_name), status")
-          .eq("round_id", data.roundId)
-          .eq("status", "paid")
-          .order("total_points", { ascending: false })
-          .order("created_at", { ascending: true })
-          .limit(100);
-
-        paid = (paidBets ?? []).map((b: any) => ({
-          user_id: b.user_id,
-          full_name: b.profiles?.full_name ?? "Usuário",
-          total_points: b.total_points,
-          bet_status: b.status
-        }));
-      } else {
-        paid = [];
-      }
+      const type = data.leagueType || "free";
+      const { data: rankingData } = await supabase.rpc("round_league_ranking", {
+        _round_id: data.roundId,
+        _league_type: type as any,
+      });
+      round = (rankingData as any[]) ?? [];
     }
+
     return {
       general: (general.data as any[]) ?? [],
       round,
-      paid,
     };
   });
 
@@ -156,14 +159,19 @@ export const acceptTerms = createServerFn({ method: "POST" })
 
 export const getMyBet = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { roundId: string }) => z.object({ roundId: z.string().uuid() }).parse(d))
+  .inputValidator((d: { roundId: string; leagueId?: string }) => z.object({ roundId: z.string().uuid(), leagueId: z.string().uuid().optional() }).parse(d))
   .handler(async ({ context, data }) => {
-    const bet = await context.supabase
+    let query = context.supabase
       .from("bets")
       .select("*")
       .eq("round_id", data.roundId)
-      .eq("user_id", context.userId)
-      .maybeSingle();
+      .eq("user_id", context.userId);
+    
+    if (data.leagueId) {
+      query = query.eq("league_id", data.leagueId);
+    }
+    
+    const bet = await query.maybeSingle();
     if (!bet.data) return { bet: null, picks: [] as any[] };
     const picks = await context.supabase.from("bet_picks").select("*").eq("bet_id", bet.data.id);
     return { bet: bet.data, picks: picks.data ?? [] };
@@ -171,10 +179,11 @@ export const getMyBet = createServerFn({ method: "GET" })
 
 export const saveBet = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { roundId: string; picks: { matchId: string; home: number; away: number }[] }) =>
+  .inputValidator((d: { roundId: string; leagueId: string; picks: { matchId: string; home: number; away: number }[] }) =>
     z
       .object({
         roundId: z.string().uuid(),
+        leagueId: z.string().uuid(),
         picks: z
           .array(
             z.object({
@@ -201,20 +210,26 @@ export const saveBet = createServerFn({ method: "POST" })
       throw new Error("O prazo para palpites desta rodada já se encerrou.");
     }
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: stats } = await supabaseAdmin.rpc("round_stats", { _round_id: data.roundId });
-    const paid = Number((stats as any)?.[0]?.paid_count ?? 0);
+    const league = await supabase.from("leagues").select("*").eq("id", data.leagueId).single();
+    if (league.error) throw new Error("Liga não encontrada.");
 
     let bet = (
-      await supabase.from("bets").select("*").eq("round_id", data.roundId).eq("user_id", userId).maybeSingle()
+      await supabase.from("bets").select("*").eq("round_id", data.roundId).eq("user_id", userId).eq("league_id", data.leagueId).maybeSingle()
     ).data;
 
-    if (bet?.status === "paid") throw new Error("Sua aposta desta rodada já foi paga e não pode ser alterada.");
+    if (bet?.status === "paid") throw new Error("Sua aposta desta liga já foi paga e não pode ser alterada.");
 
     if (!bet) {
       const created = await supabase
         .from("bets")
-        .insert({ round_id: data.roundId, user_id: userId, amount: round.data.entry_fee, status: "pending" })
+        .insert({ 
+          round_id: data.roundId, 
+          user_id: userId, 
+          league_id: data.leagueId,
+          amount: league.data.entry_fee, 
+          status: league.data.entry_fee > 0 ? "pending" : "paid",
+          paid_at: league.data.entry_fee > 0 ? null : new Date().toISOString()
+        })
         .select("*")
         .single();
       if (created.error) throw new Error(created.error.message);
