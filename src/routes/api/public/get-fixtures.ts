@@ -133,14 +133,19 @@ export const Route = createFileRoute('/api/public/get-fixtures')({
 
           const payload = { round, fixtures: treatedFixtures };
 
-          // Salva/atualiza o cache no banco
-          const { error: upsertError } = await supabaseAdmin.from('api_cache').upsert({
-            key: cacheKey,
-            payload,
-            fetched_at: new Date().toISOString(),
-          });
-          if (upsertError) {
-            console.error('Erro ao gravar o cache de fixtures:', upsertError);
+          // Salva/atualiza o cache no banco (nunca cacheia lista vazia,
+          // para não travar o site numa resposta ruim da API externa)
+          if (treatedFixtures.length > 0) {
+            const { error: upsertError } = await supabaseAdmin.from('api_cache').upsert({
+              key: cacheKey,
+              payload,
+              fetched_at: new Date().toISOString(),
+            });
+            if (upsertError) {
+              console.error('Erro ao gravar o cache de fixtures:', upsertError);
+            }
+          } else {
+            console.warn(`API-Football retornou 0 jogos para ${cacheKey}; cache não foi gravado.`);
           }
 
           return new Response(JSON.stringify(payload), {
