@@ -41,8 +41,6 @@ function Regulamento() {
   const status = useServerFn(getMyStatus);
   const [logado, setLogado] = useState(false);
   const [jaAceito, setJaAceito] = useState(false);
-  const [nome, setNome] = useState("");
-  const [telefone, setTelefone] = useState("");
   const [ciente, setCiente] = useState(false);
   const [enviando, setEnviando] = useState(false);
 
@@ -53,8 +51,6 @@ function Regulamento() {
       try {
         const s = await status({});
         setJaAceito(Boolean(s.profile?.terms_accepted_at));
-        setNome(s.profile?.full_name ?? "");
-        setTelefone(s.profile?.phone ?? "");
       } catch {
         /* silencioso */
       }
@@ -68,7 +64,7 @@ function Regulamento() {
     }
     setEnviando(true);
     try {
-      await aceitar({ data: { fullName: nome, phone: telefone } });
+      await aceitar({ data: {} });
       toast.success("Regulamento aceito! Bons palpites.");
       navigate({ to: "/palpitar" });
     } catch (e: any) {
@@ -156,21 +152,6 @@ function Regulamento() {
 
             {logado && !jaAceito && (
               <div className="space-y-6">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-1">
-                    <Label htmlFor="nome">Nome completo</Label>
-                    <Input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} maxLength={120} />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="tel">Telefone</Label>
-                    <Input
-                      id="tel"
-                      value={telefone}
-                      onChange={(e) => setTelefone(e.target.value)}
-                      maxLength={30}
-                    />
-                  </div>
-                </div>
                 <label className="flex items-start gap-3 text-sm sm:text-base">
                   <Checkbox checked={ciente} onCheckedChange={(v) => setCiente(Boolean(v))} className="mt-1" />
                   <span>
