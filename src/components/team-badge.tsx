@@ -10,6 +10,7 @@ export function TeamBadge({
   logo?: string | null; 
   className?: string;
   position?: "home" | "away";
+  size?: "sm" | "md" | "lg";
 }) {
   return (
     <div className={cn(
