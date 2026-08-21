@@ -177,7 +177,7 @@ function Home() {
                   } ${i < matches.length - 2 ? 'border-b' : (i < matches.length - 1 ? 'border-b md:border-b-0' : '')}`}
                 >
                   <div className="flex flex-col items-center gap-2 flex-1">
-                    <TeamBadge name={m.home_team} logo={m.home_logo} position="home" />
+                    <TeamBadge name={m.home_team} logo={m.home_logo} position="home" size="md" />
                   </div>
                   <div className="flex flex-col items-center px-4">
                     <span className="rounded-full bg-primary/10 px-4 py-1 text-xs font-black text-primary mb-1">
