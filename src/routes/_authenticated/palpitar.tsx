@@ -38,6 +38,16 @@ function Palpitar() {
   const [enviando, setEnviando] = useState(false);
 
   const rodada = useQuery({ queryKey: ["rodada-atual"], queryFn: () => carregarRodada({}) });
+  
+  const fixturesQuery = useQuery({
+    queryKey: ["fixtures-atuais"],
+    queryFn: async () => {
+      const res = await fetch("/api/public/get-fixtures");
+      if (!res.ok) throw new Error("Falha ao buscar jogos da API");
+      return res.json() as Promise<{ round: string; fixtures: any[] }>;
+    }
+  });
+
   const status = useQuery({ queryKey: ["meu-status"], queryFn: () => carregarStatus({}) });
   const roundId = rodada.data?.round?.id as string | undefined;
 
@@ -71,12 +81,13 @@ function Palpitar() {
   }
 
   async function salvarGratuito() {
-    const picks = matches.map((m) => ({
-      matchId: m.id as string,
+    const currentMatches = fixturesQuery.data?.fixtures || matches;
+    const picks = currentMatches.map((m: any) => ({
+      matchId: (m.id || m.match_id) as string,
       home: Number(placares[m.id]?.home ?? ""),
       away: Number(placares[m.id]?.away ?? ""),
     }));
-    if (picks.some((p) => Number.isNaN(p.home) || Number.isNaN(p.away))) {
+    if (picks.some((p: any) => Number.isNaN(p.home) || Number.isNaN(p.away))) {
       toast.error("Preencha o placar de todos os jogos.");
       return;
     }
@@ -94,12 +105,13 @@ function Palpitar() {
   }
 
   async function entrarNoPremio() {
-    const picks = matches.map((m) => ({
-      matchId: m.id as string,
+    const currentMatches = fixturesQuery.data?.fixtures || matches;
+    const picks = currentMatches.map((m: any) => ({
+      matchId: (m.id || m.match_id) as string,
       home: Number(placares[m.id]?.home ?? ""),
       away: Number(placares[m.id]?.away ?? ""),
     }));
-    if (picks.some((p) => Number.isNaN(p.home) || Number.isNaN(p.away))) {
+    if (picks.some((p: any) => Number.isNaN(p.home) || Number.isNaN(p.away))) {
       toast.error("Preencha o placar de todos os jogos antes de participar do prêmio.");
       return;
     }
@@ -121,7 +133,7 @@ function Palpitar() {
       <main className="mx-auto max-w-3xl space-y-6 px-4 py-10">
         <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
           <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-            {rodada.data?.round ? rodada.data.round.title || `Rodada ${rodada.data.round.number}` : "Rodada"}
+            {fixturesQuery.data?.round || (rodada.data?.round ? (rodada.data.round.title || `Rodada ${rodada.data.round.number}`) : "Rodada")}
           </h1>
           <Badge variant={pago ? "default" : "secondary"} className="w-fit">
             {pago ? "Participando do Prêmio" : "Palpite Gratuito"}
@@ -166,7 +178,52 @@ function Palpitar() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 p-2 sm:p-6">
-              {matches.map((m) => (
+              {fixturesQuery.isLoading && <p className="text-center py-4 text-muted-foreground">Carregando jogos...</p>}
+              
+              {!fixturesQuery.isLoading && fixturesQuery.data?.fixtures && fixturesQuery.data.fixtures.map((f: any) => (
+                <div
+                  key={f.id}
+                  className="flex flex-col rounded-lg border border-border p-3 space-y-3"
+                >
+                  <div className="flex justify-center items-center text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+                    <span>
+                      {new Date(f.date).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' })} • {new Date(f.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                    {f.venue && <span className="mx-1.5">•</span>}
+                    {f.venue && <span className="truncate max-w-[150px]">{f.venue}</span>}
+                  </div>
+
+                  <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                    <div className="flex justify-end overflow-hidden">
+                      <TeamBadge name={f.homeTeam.name} logo={f.homeTeam.logo} position="home" className="text-xs sm:text-sm" />
+                    </div>
+                    <div className="flex items-center gap-1 sm:gap-2">
+                      <Input
+                        className="h-8 w-10 px-1 text-center sm:h-10 sm:w-12 sm:px-3"
+                        inputMode="numeric"
+                        disabled={pago || !aceitou || isClosed}
+                        value={placares[f.id]?.home ?? ""}
+                        onChange={(e) => setPlacar(f.id, "home", e.target.value)}
+                        aria-label={`Gols do ${f.homeTeam.name}`}
+                      />
+                      <span className="text-xs text-muted-foreground sm:text-sm">x</span>
+                      <Input
+                        className="h-8 w-10 px-1 text-center sm:h-10 sm:w-12 sm:px-3"
+                        inputMode="numeric"
+                        disabled={pago || !aceitou || isClosed}
+                        value={placares[f.id]?.away ?? ""}
+                        onChange={(e) => setPlacar(f.id, "away", e.target.value)}
+                        aria-label={`Gols do ${f.awayTeam.name}`}
+                      />
+                    </div>
+                    <div className="flex justify-start overflow-hidden">
+                      <TeamBadge name={f.awayTeam.name} logo={f.awayTeam.logo} position="away" className="text-xs sm:text-sm" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {!fixturesQuery.isLoading && !fixturesQuery.data?.fixtures && matches.map((m) => (
                 <div
                   key={m.id}
                   className="grid grid-cols-[1fr_auto_1fr] items-center gap-1 rounded-lg border border-border p-2 sm:gap-2 sm:p-3"
@@ -210,7 +267,7 @@ function Palpitar() {
                       size="lg"
                       className="w-full sm:w-auto"
                       onClick={salvarGratuito}
-                      disabled={enviando || !aceitou || matches.length === 0 || isClosed}
+                      disabled={enviando || !aceitou || (matches.length === 0 && !fixturesQuery.data?.fixtures) || isClosed}
                     >
                       {enviando ? "Processando..." : "Salvar palpite gratuito"}
                     </Button>
@@ -238,7 +295,7 @@ function Palpitar() {
                             variant="default"
                             className="bg-primary hover:bg-primary/90 w-full sm:w-auto"
                             onClick={entrarNoPremio}
-                            disabled={enviando || !aceitou || matches.length === 0 || lotado || isClosed}
+                            disabled={enviando || !aceitou || (matches.length === 0 && !fixturesQuery.data?.fixtures) || lotado || isClosed}
                           >
                             Depositar R$ 50,00 e Concorrer
                           </Button>
