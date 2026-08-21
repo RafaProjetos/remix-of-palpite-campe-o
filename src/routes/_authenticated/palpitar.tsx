@@ -157,11 +157,14 @@ function Palpitar() {
         )}
 
         {!isClosed && !aceitou && (
-          <Card>
-            <CardContent className="flex flex-col items-start justify-between gap-4 py-6 sm:flex-row sm:items-center">
-              <p className="text-sm">Aceite o regulamento para poder palpitar.</p>
-              <Button asChild className="w-full sm:w-auto">
-                <Link to="/regulamento">Ir para o regulamento</Link>
+          <Card className="border-primary/50 bg-primary/5">
+            <CardContent className="flex flex-col items-center justify-center gap-4 py-8 text-center">
+              <div className="space-y-2">
+                <h2 className="text-xl font-bold">Termos de Uso e Regulamento</h2>
+                <p className="text-muted-foreground">Você precisa aceitar os termos antes de começar a palpitar.</p>
+              </div>
+              <Button asChild size="lg" className="w-full sm:w-auto">
+                <Link to="/regulamento">Ler e aceitar o regulamento</Link>
               </Button>
             </CardContent>
           </Card>

@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,7 +39,8 @@ const REGRAS = [
 function Regulamento() {
   const navigate = useNavigate();
   const aceitar = useServerFn(acceptTerms);
-  const status = useServerFn(getMyStatus);
+  const carregarStatus = useServerFn(getMyStatus);
+  const statusQuery = useQuery({ queryKey: ["meu-status"], queryFn: () => carregarStatus({}) });
   const [logado, setLogado] = useState(false);
   const [jaAceito, setJaAceito] = useState(false);
   const [ciente, setCiente] = useState(false);
@@ -48,14 +50,14 @@ function Regulamento() {
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) return;
       setLogado(true);
-      try {
-        const s = await status({});
-        setJaAceito(Boolean(s.profile?.terms_accepted_at));
-      } catch {
-        /* silencioso */
-      }
     });
   }, [status]);
+
+  useEffect(() => {
+    if (statusQuery.data) {
+      setJaAceito(Boolean(statusQuery.data.profile?.terms_accepted_at));
+    }
+  }, [statusQuery.data]);
 
   async function confirmar() {
     if (!ciente) {
@@ -66,6 +68,7 @@ function Regulamento() {
     try {
       await aceitar({ data: {} });
       toast.success("Regulamento aceito! Bons palpites.");
+      await statusQuery.refetch();
       navigate({ to: "/palpitar" });
     } catch (e: any) {
       toast.error(e?.message ?? "Não foi possível salvar o aceite.");
