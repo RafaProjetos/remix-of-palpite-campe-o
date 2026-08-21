@@ -104,6 +104,9 @@ export const Route = createFileRoute('/api/public/get-fixtures')({
           );
 
           const fixturesJson = await fixturesRes.json();
+          if (fixturesJson.errors && Object.keys(fixturesJson.errors).length > 0) {
+            throw new Error(`API-Football: ${JSON.stringify(fixturesJson.errors)}`);
+          }
           const rawFixtures = fixturesJson.response || [];
 
           const treatedFixtures = rawFixtures.map((f: any) => ({
