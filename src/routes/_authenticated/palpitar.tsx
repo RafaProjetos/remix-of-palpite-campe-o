@@ -38,6 +38,16 @@ function Palpitar() {
   const [enviando, setEnviando] = useState(false);
 
   const rodada = useQuery({ queryKey: ["rodada-atual"], queryFn: () => carregarRodada({}) });
+  
+  const fixturesQuery = useQuery({
+    queryKey: ["fixtures-atuais"],
+    queryFn: async () => {
+      const res = await fetch("/api/public/get-fixtures");
+      if (!res.ok) throw new Error("Falha ao buscar jogos da API");
+      return res.json() as Promise<{ round: string; fixtures: any[] }>;
+    }
+  });
+
   const status = useQuery({ queryKey: ["meu-status"], queryFn: () => carregarStatus({}) });
   const roundId = rodada.data?.round?.id as string | undefined;
 
