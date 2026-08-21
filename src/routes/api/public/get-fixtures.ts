@@ -84,6 +84,9 @@ export const Route = createFileRoute('/api/public/get-fixtures')({
               { headers: { 'x-apisports-key': apiKey } },
             );
             const currentRoundJson = await currentRoundRes.json();
+            if (currentRoundJson.errors && Object.keys(currentRoundJson.errors).length > 0) {
+              throw new Error(`API-Football: ${JSON.stringify(currentRoundJson.errors)}`);
+            }
             round = currentRoundJson.response?.[0];
           }
 
