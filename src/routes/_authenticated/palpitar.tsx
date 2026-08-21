@@ -295,7 +295,7 @@ function Palpitar() {
                             variant="default"
                             className="bg-primary hover:bg-primary/90 w-full sm:w-auto"
                             onClick={entrarNoPremio}
-                            disabled={enviando || !aceitou || matches.length === 0 || lotado || isClosed}
+                            disabled={enviando || !aceitou || (matches.length === 0 && !fixturesQuery.data?.fixtures) || lotado || isClosed}
                           >
                             Depositar R$ 50,00 e Concorrer
                           </Button>
