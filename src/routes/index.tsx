@@ -192,7 +192,7 @@ function Home() {
                     )}
                   </div>
                   <div className="flex flex-col items-center gap-2 flex-1">
-                    <TeamBadge name={m.away_team} logo={m.away_logo} position="away" size="md" />
+                    <TeamBadge name={m.away_team} logo={m.away_logo} position="away" />
                   </div>
                 </div>
               ))}
