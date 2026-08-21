@@ -131,7 +131,7 @@ function Palpitar() {
       <main className="mx-auto max-w-3xl space-y-6 px-4 py-10">
         <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
           <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-            {rodada.data?.round ? rodada.data.round.title || `Rodada ${rodada.data.round.number}` : "Rodada"}
+            {fixturesQuery.data?.round || (rodada.data?.round ? (rodada.data.round.title || `Rodada ${rodada.data.round.number}`) : "Rodada")}
           </h1>
           <Badge variant={pago ? "default" : "secondary"} className="w-fit">
             {pago ? "Participando do Prêmio" : "Palpite Gratuito"}
