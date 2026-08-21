@@ -5,14 +5,17 @@ export function TeamBadge({
   logo, 
   className, 
   position = "away",
-  size = "sm"
+  size = "sm",
+  layout = "horizontal",
+  hideNameOnMobile = false
 }: { 
-
   name: string; 
   logo?: string | null; 
   className?: string;
   position?: "home" | "away";
   size?: "sm" | "md" | "lg";
+  layout?: "horizontal" | "vertical";
+  hideNameOnMobile?: boolean;
 }) {
   const iconSize = size === "lg" ? "h-8 w-8 sm:h-12 sm:w-12" : size === "md" ? "h-6 w-6 sm:h-10 sm:w-10" : "h-5 w-5 sm:h-8 sm:w-8";
   const textSize = size === "lg" ? "text-xs sm:text-lg" : size === "md" ? "text-[10px] sm:text-base" : "text-[10px] sm:text-sm";
@@ -20,7 +23,7 @@ export function TeamBadge({
   return (
     <div className={cn(
       "flex min-w-0 items-center gap-2", 
-      position === "home" && "flex-row-reverse text-right",
+      layout === "vertical" ? "flex-col text-center" : (position === "home" && "flex-row-reverse text-right"),
       className
     )}>
       {logo ? (
@@ -30,7 +33,11 @@ export function TeamBadge({
           {name.slice(0, 3).toUpperCase()}
         </span>
       )}
-      <span className={cn("truncate font-bold tracking-tight text-foreground", textSize)}>{name}</span>
+      <span className={cn(
+        "truncate font-bold tracking-tight text-foreground", 
+        textSize,
+        hideNameOnMobile && "hidden sm:block"
+      )}>{name}</span>
     </div>
   );
 }

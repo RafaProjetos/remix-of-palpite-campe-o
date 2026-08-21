@@ -176,8 +176,15 @@ function Home() {
                     i % 2 === 0 ? 'md:border-r' : ''
                   } ${i < matches.length - 2 ? 'border-b' : (i < matches.length - 1 ? 'border-b md:border-b-0' : '')}`}
                 >
-                  <div className="flex flex-col items-center gap-2 flex-1">
-                    <TeamBadge name={m.home_team} logo={m.home_logo} position="home" size="md" />
+                  <div className="flex flex-col items-center gap-2 flex-1 min-w-0">
+                    <TeamBadge 
+                      name={m.home_team} 
+                      logo={m.home_logo} 
+                      position="home" 
+                      size="md" 
+                      layout="vertical" 
+                      hideNameOnMobile={true} 
+                    />
                   </div>
                   <div className="flex flex-col items-center px-4">
                     <span className="rounded-full bg-primary/10 px-4 py-1 text-xs font-black text-primary mb-1">
@@ -191,8 +198,15 @@ function Home() {
                       </span>
                     )}
                   </div>
-                  <div className="flex flex-col items-center gap-2 flex-1">
-                    <TeamBadge name={m.away_team} logo={m.away_logo} position="away" size="md" />
+                  <div className="flex flex-col items-center gap-2 flex-1 min-w-0">
+                    <TeamBadge 
+                      name={m.away_team} 
+                      logo={m.away_logo} 
+                      position="away" 
+                      size="md" 
+                      layout="vertical" 
+                      hideNameOnMobile={true} 
+                    />
                   </div>
                 </div>
               ))}
