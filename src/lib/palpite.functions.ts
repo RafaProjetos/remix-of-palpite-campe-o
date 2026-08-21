@@ -112,7 +112,21 @@ export const getMyStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
-    const profile = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
+    let profile = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
+    
+    // Se o perfil não existir, tenta criar
+    if (!profile.data) {
+      const { data: newProfile, error: insertError } = await supabase
+        .from("profiles")
+        .insert({ id: userId })
+        .select("*")
+        .maybeSingle();
+      
+      if (!insertError) {
+        profile = { data: newProfile, error: null };
+      }
+    }
+
     const roles = await supabase.from("user_roles").select("role").eq("user_id", userId);
     return {
       profile: profile.data,
