@@ -15,14 +15,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 export const Route = createFileRoute("/regulamento")({
   head: () => ({
     meta: [
-      { title: "Regulamento — Palpite da Rodada" },
+      { title: "Regulamento Oficial — Palpite da Rodada" },
       {
         name: "description",
         content:
-          "Regras de pontuação, limite de 100 apostadores, valor de R$ 50 por rodada e autorização de uso de dados do Palpite da Rodada.",
+          "Regras oficiais das Ligas Free, Bronze, Prata e Ouro do Palpite da Rodada. Veja como pontuar e subir no ranking!",
       },
-      { property: "og:title", content: "Regulamento — Palpite da Rodada" },
-      { property: "og:description", content: "Como funciona a pontuação e a participação no bolão." },
+      { property: "og:title", content: "Regulamento Oficial — Palpite da Rodada" },
+      { property: "og:description", content: "Participe das nossas ligas e mostre que você manja tudo de Brasileirão!" },
     ],
   }),
   component: Regulamento,
