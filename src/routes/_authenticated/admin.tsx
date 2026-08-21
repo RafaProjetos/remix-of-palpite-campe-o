@@ -221,10 +221,10 @@ function Admin() {
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <Metrica titulo="Arrecadado na rodada" valor={`R$ ${Number(stats?.total_amount ?? 0).toFixed(2)}`} />
+          <Metrica titulo="Arrecadado na Liga" valor={`R$ ${Number(stats?.total_amount ?? 0).toFixed(2)}`} />
           <Metrica
             titulo="Apostadores pagantes"
-            valor={`${Number(stats?.paid_count ?? 0)}/${Number(stats?.max_players ?? 100)}`}
+            valor={`${Number(stats?.paid_count ?? 0)}`}
           />
           <Metrica
             titulo="Situação da rodada"
@@ -239,6 +239,15 @@ function Admin() {
             }
           />
         </div>
+
+        <Tabs defaultValue="free" className="w-full" onValueChange={setActiveLeagueType}>
+          <TabsList className="grid w-full grid-cols-4 mb-4">
+            <TabsTrigger value="free">Free</TabsTrigger>
+            <TabsTrigger value="bronze">Bronze</TabsTrigger>
+            <TabsTrigger value="prata">Prata</TabsTrigger>
+            <TabsTrigger value="ouro">Ouro</TabsTrigger>
+          </TabsList>
+        </Tabs>
 
         {rodada.data?.round?.closes_at && (
           <p className="text-sm text-muted-foreground">
