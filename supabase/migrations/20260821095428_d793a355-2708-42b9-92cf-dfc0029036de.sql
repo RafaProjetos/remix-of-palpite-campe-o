@@ -1,0 +1,1 @@
+TRUNCATE TABLE public.api_cache;

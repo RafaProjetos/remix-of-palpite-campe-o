@@ -47,13 +47,15 @@ function Palpitar() {
   const ligas = useQuery({ queryKey: ["leagues"], queryFn: () => carregarLigas({}) });
   const activeLeague = ligas.data?.find(l => l.type === activeLeagueType);
 
+  // A rota já responde do cache do servidor; staleTime evita refetch a cada navegação
   const fixturesQuery = useQuery({
     queryKey: ["fixtures-atuais"],
     queryFn: async () => {
       const res = await fetch("/api/public/get-fixtures");
       if (!res.ok) throw new Error("Falha ao buscar jogos da API");
       return res.json() as Promise<{ round: string; fixtures: any[] }>;
-    }
+    },
+    staleTime: 5 * 60 * 1000,
   });
 
   const status = useQuery({ queryKey: ["meu-status"], queryFn: () => carregarStatus({}) });
