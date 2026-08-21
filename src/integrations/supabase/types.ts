@@ -60,37 +60,53 @@ export type Database = {
         Row: {
           amount: number
           created_at: string
+          full_hits: number | null
           id: string
+          league_id: string
           paid_at: string | null
           round_id: string
           status: Database["public"]["Enums"]["bet_status"]
           total_points: number
           updated_at: string
           user_id: string
+          winner_hits: number | null
         }
         Insert: {
           amount?: number
           created_at?: string
+          full_hits?: number | null
           id?: string
+          league_id: string
           paid_at?: string | null
           round_id: string
           status?: Database["public"]["Enums"]["bet_status"]
           total_points?: number
           updated_at?: string
           user_id: string
+          winner_hits?: number | null
         }
         Update: {
           amount?: number
           created_at?: string
+          full_hits?: number | null
           id?: string
+          league_id?: string
           paid_at?: string | null
           round_id?: string
           status?: Database["public"]["Enums"]["bet_status"]
           total_points?: number
           updated_at?: string
           user_id?: string
+          winner_hits?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "bets_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "bets_round_id_fkey"
             columns: ["round_id"]
@@ -99,6 +115,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      leagues: {
+        Row: {
+          created_at: string | null
+          entry_fee: number
+          id: string
+          name: string
+          platform_fee_percent: number
+          type: Database["public"]["Enums"]["league_type"]
+        }
+        Insert: {
+          created_at?: string | null
+          entry_fee: number
+          id?: string
+          name: string
+          platform_fee_percent?: number
+          type: Database["public"]["Enums"]["league_type"]
+        }
+        Update: {
+          created_at?: string | null
+          entry_fee?: number
+          id?: string
+          name?: string
+          platform_fee_percent?: number
+          type?: Database["public"]["Enums"]["league_type"]
+        }
+        Relationships: []
       }
       matches: {
         Row: {
@@ -310,9 +353,36 @@ export type Database = {
         Returns: boolean
       }
       is_admin_self: { Args: never; Returns: boolean }
+      league_stats: {
+        Args: {
+          _league_type: Database["public"]["Enums"]["league_type"]
+          _round_id: string
+        }
+        Returns: {
+          gross_pot: number
+          net_pot: number
+          platform_fee: number
+          total_participants: number
+        }[]
+      }
       recalculate_partial_scores: {
         Args: { _round_id: string }
         Returns: undefined
+      }
+      round_league_ranking: {
+        Args: {
+          _league_type: Database["public"]["Enums"]["league_type"]
+          _round_id: string
+        }
+        Returns: {
+          created_at: string
+          full_hits: number
+          full_name: string
+          row_position: number
+          total_points: number
+          user_id: string
+          winner_hits: number
+        }[]
       }
       round_ranking: {
         Args: { _round_id: string }
@@ -331,11 +401,13 @@ export type Database = {
           total_participants: number
         }[]
       }
+      update_bet_stats: { Args: { _bet_id: string }; Returns: undefined }
       validate_round: { Args: { _round_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "user"
       bet_status: "pending" | "paid" | "cancelled"
+      league_type: "free" | "bronze" | "prata" | "ouro"
       round_status: "open" | "closed" | "validated"
     }
     CompositeTypes: {
@@ -466,6 +538,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "user"],
       bet_status: ["pending", "paid", "cancelled"],
+      league_type: ["free", "bronze", "prata", "ouro"],
       round_status: ["open", "closed", "validated"],
     },
   },
