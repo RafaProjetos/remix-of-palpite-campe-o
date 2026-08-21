@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
 
-export const Route = createFileRoute('/api/public/get-fixtures')({
+export const Route = createFileRoute('/api/public/get-fixtures/')({
   server: {
     handlers: {
       GET: async ({ request }) => {

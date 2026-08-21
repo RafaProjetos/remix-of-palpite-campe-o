@@ -18,7 +18,7 @@ import { Route as RegulamentoRouteImport } from './routes/regulamento'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedMeusPalpitesRouteImport } from './routes/_authenticated/meus-palpites'
 import { Route as AuthenticatedPalpitarRouteImport } from './routes/_authenticated/palpitar'
-import { Route as ApiPublicGetFixturesRouteImport } from './routes/api/public/get-fixtures'
+import { Route as ApiPublicGetFixturesIndexRouteImport } from './routes/api/public/get-fixtures/index'
 import { Route as ApiPublicWebhooksMercadopagoRouteImport } from './routes/api/public/webhooks/mercadopago'
 
 const IndexRoute = IndexRouteImport.update({
@@ -66,11 +66,12 @@ const AuthenticatedPalpitarRoute = AuthenticatedPalpitarRouteImport.update({
   path: '/palpitar',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ApiPublicGetFixturesRoute = ApiPublicGetFixturesRouteImport.update({
-  id: '/api/public/get-fixtures',
-  path: '/api/public/get-fixtures',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const ApiPublicGetFixturesIndexRoute =
+  ApiPublicGetFixturesIndexRouteImport.update({
+    id: '/api/public/get-fixtures/',
+    path: '/api/public/get-fixtures/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicWebhooksMercadopagoRoute =
   ApiPublicWebhooksMercadopagoRouteImport.update({
     id: '/api/public/webhooks/mercadopago',
@@ -87,8 +88,8 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/meus-palpites': typeof AuthenticatedMeusPalpitesRoute
   '/palpitar': typeof AuthenticatedPalpitarRoute
-  '/api/public/get-fixtures': typeof ApiPublicGetFixturesRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
+  '/api/public/get-fixtures/': typeof ApiPublicGetFixturesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -99,8 +100,8 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/meus-palpites': typeof AuthenticatedMeusPalpitesRoute
   '/palpitar': typeof AuthenticatedPalpitarRoute
-  '/api/public/get-fixtures': typeof ApiPublicGetFixturesRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
+  '/api/public/get-fixtures': typeof ApiPublicGetFixturesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -113,8 +114,8 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/meus-palpites': typeof AuthenticatedMeusPalpitesRoute
   '/_authenticated/palpitar': typeof AuthenticatedPalpitarRoute
-  '/api/public/get-fixtures': typeof ApiPublicGetFixturesRoute
   '/api/public/webhooks/mercadopago': typeof ApiPublicWebhooksMercadopagoRoute
+  '/api/public/get-fixtures/': typeof ApiPublicGetFixturesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -127,8 +128,8 @@ export interface FileRouteTypes {
     | '/admin'
     | '/meus-palpites'
     | '/palpitar'
-    | '/api/public/get-fixtures'
     | '/api/public/webhooks/mercadopago'
+    | '/api/public/get-fixtures/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -139,8 +140,8 @@ export interface FileRouteTypes {
     | '/admin'
     | '/meus-palpites'
     | '/palpitar'
-    | '/api/public/get-fixtures'
     | '/api/public/webhooks/mercadopago'
+    | '/api/public/get-fixtures'
   id:
     | '__root__'
     | '/'
@@ -152,8 +153,8 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/meus-palpites'
     | '/_authenticated/palpitar'
-    | '/api/public/get-fixtures'
     | '/api/public/webhooks/mercadopago'
+    | '/api/public/get-fixtures/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -163,8 +164,8 @@ export interface RootRouteChildren {
   PagamentoRoute: typeof PagamentoRoute
   RankingRoute: typeof RankingRoute
   RegulamentoRoute: typeof RegulamentoRoute
-  ApiPublicGetFixturesRoute: typeof ApiPublicGetFixturesRoute
   ApiPublicWebhooksMercadopagoRoute: typeof ApiPublicWebhooksMercadopagoRoute
+  ApiPublicGetFixturesIndexRoute: typeof ApiPublicGetFixturesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -232,11 +233,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPalpitarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/public/get-fixtures': {
-      id: '/api/public/get-fixtures'
+    '/api/public/get-fixtures/': {
+      id: '/api/public/get-fixtures/'
       path: '/api/public/get-fixtures'
-      fullPath: '/api/public/get-fixtures'
-      preLoaderRoute: typeof ApiPublicGetFixturesRouteImport
+      fullPath: '/api/public/get-fixtures/'
+      preLoaderRoute: typeof ApiPublicGetFixturesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/webhooks/mercadopago': {
@@ -271,8 +272,8 @@ const rootRouteChildren: RootRouteChildren = {
   PagamentoRoute: PagamentoRoute,
   RankingRoute: RankingRoute,
   RegulamentoRoute: RegulamentoRoute,
-  ApiPublicGetFixturesRoute: ApiPublicGetFixturesRoute,
   ApiPublicWebhooksMercadopagoRoute: ApiPublicWebhooksMercadopagoRoute,
+  ApiPublicGetFixturesIndexRoute: ApiPublicGetFixturesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
