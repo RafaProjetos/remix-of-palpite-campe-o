@@ -292,5 +292,3 @@ function Home() {
     </div>
   );
 }
-  );
-}
