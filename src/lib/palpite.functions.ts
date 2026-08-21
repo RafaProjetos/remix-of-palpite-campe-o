@@ -4,6 +4,29 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 /* ---------------------------------- público --------------------------------- */
 
+export const getLeagues = createServerFn({ method: "GET" }).handler(async () => {
+  const { publicClient } = await import("./palpite.server");
+  const supabase = publicClient();
+  const { data: leagues } = await supabase
+    .from("leagues")
+    .select("*")
+    .order("entry_fee", { ascending: true });
+  return leagues ?? [];
+});
+
+export const getLeagueStats = createServerFn({ method: "GET" })
+  .inputValidator((d: { roundId: string; leagueType: string }) =>
+    z.object({ roundId: z.string().uuid(), leagueType: z.string() }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: stats } = await supabaseAdmin.rpc("league_stats", {
+      _round_id: data.roundId,
+      _league_type: data.leagueType as any,
+    });
+    return (stats as any)?.[0] ?? null;
+  });
+
 export const getCurrentRound = createServerFn({ method: "GET" }).handler(async () => {
   const { publicClient } = await import("./palpite.server");
   const supabase = publicClient();
@@ -19,9 +42,7 @@ export const getCurrentRound = createServerFn({ method: "GET" }).handler(async (
     .select("*")
     .eq("round_id", round.id)
     .order("position");
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: stats } = await supabaseAdmin.rpc("round_stats", { _round_id: round.id });
-  return { round, matches: matches ?? [], stats: (stats as any)?.[0] ?? null };
+  return { round, matches: matches ?? [] };
 });
 
 export const getRankings = createServerFn({ method: "GET" })
