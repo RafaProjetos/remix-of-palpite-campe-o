@@ -85,28 +85,29 @@ function Regulamento() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl">Como Funciona</CardTitle>
+            <CardTitle className="text-xl">Cola aqui: Como o jogo funciona</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-muted-foreground sm:text-base">
             <p>
-              O <strong>Palpite da Rodada</strong> é um concurso de prognósticos baseado nos jogos da Série A do Brasileirão 2026. 
-              A cada rodada, você pode dar palpites em 10 jogos selecionados.
+              Fala, torcedor! O <strong>Palpite da Rodada</strong> é onde você mostra que entende mesmo de Brasileirão 2026. 
+              A cada rodada, a gente seleciona 10 jogões pra você mandar seu palpite.
             </p>
-            <ul className="list-disc pl-5 space-y-1">
-              <li><strong>Modalidade Gratuita:</strong> Participe sem custo e acompanhe seu desempenho no ranking.</li>
-              <li><strong>Modalidade Premium:</strong> Por apenas R$ 50,00, você concorre a prêmios em dinheiro. Esta modalidade é limitada a <strong>100 participantes</strong> por rodada.</li>
-              <li><strong>Fechamento:</strong> Os palpites encerram automaticamente no horário de início do primeiro jogo da rodada.</li>
-              <li><strong>Dados:</strong> Seus dados são usados exclusivamente para identificar suas apostas e processar prêmios, conforme a LGPD.</li>
+            <ul className="list-disc pl-5 space-y-2">
+              <li><strong>Liga Free:</strong> Pra quem quer diversão sem gastar nada. Acesso livre e ranking pra tirar onda com os amigos.</li>
+              <li><strong>Ligas Pagas (Bronze, Prata e Ouro):</strong> Aqui o bicho pega! Entradas de R$ 5, R$ 20 ou R$ 50. O pote é dividido entre o <strong>Top 10</strong> da rodada.</li>
+              <li><strong>Desempate:</strong> Se empatar na pontuação, a gente olha quem acertou o placar em cheio, depois quem acertou o vencedor e, por fim, quem mandou o palpite primeiro.</li>
+              <li><strong>Pote 100% Real:</strong> Tirando 10% da plataforma, todo o resto vai pros ganhadores. Transparência total!</li>
+              <li><strong>Dados Seguros:</strong> Suas infos ficam seguras com a gente, só pra te identificar e mandar aquele Pix da vitória.</li>
             </ul>
-            <div className="pt-2 border-t mt-4">
-              <p className="text-sm font-medium text-foreground mb-2">Leia o regulamento completo. Baixe aqui:</p>
+            <div className="pt-4 border-t mt-4">
+              <p className="text-sm font-medium text-foreground mb-2">Quer ler o papo completo? Baixa o PDF oficial:</p>
               <a 
                 href="/docs/regulamento.pdf" 
                 download 
-                className="inline-flex items-center gap-2 text-primary hover:underline font-semibold"
+                className="inline-flex items-center gap-2 text-primary hover:underline font-bold bg-primary/5 px-4 py-2 rounded-full transition-colors hover:bg-primary/10"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-                Baixar Regulamento PDF
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                Baixar Regulamento V2 (PDF)
               </a>
             </div>
           </CardContent>
