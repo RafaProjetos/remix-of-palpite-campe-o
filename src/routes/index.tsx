@@ -6,7 +6,7 @@ import { TeamBadge } from "@/components/team-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check } from "lucide-react";
+import { Check, MessageCircle } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -328,6 +328,45 @@ function Home() {
           </Card>
         </div>
       </main>
+
+      {/* WhatsApp Community CTA */}
+      <section className="py-16 bg-muted/50 border-y border-border">
+        <div className="container mx-auto max-w-4xl px-4">
+          <Card className="overflow-hidden border-none shadow-2xl bg-gradient-to-br from-green-600 to-green-700 text-white">
+            <CardContent className="p-8 sm:p-12">
+              <div className="flex flex-col items-center text-center sm:flex-row sm:text-left sm:justify-between gap-8">
+                <div className="space-y-4">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-1.5 text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
+                    <MessageCircle className="h-4 w-4 fill-white text-green-600" />
+                    Comunidade Exclusiva
+                  </div>
+                  <h2 className="text-3xl font-black sm:text-4xl">Entre no Grupo do WhatsApp</h2>
+                  <p className="text-lg text-green-50/90 max-w-xl font-medium leading-relaxed">
+                    Receba atualizações das rodadas, dicas exclusivas e participe das resenhas com outros apostadores em tempo real.
+                  </p>
+                </div>
+                <div className="flex-shrink-0">
+                  <Button 
+                    asChild 
+                    size="lg" 
+                    className="h-16 px-10 text-xl font-black bg-white text-green-700 hover:bg-green-50 shadow-xl transition-all hover:scale-105 active:scale-95"
+                  >
+                    <a 
+                      href="https://chat.whatsapp.com/GjkXVgHQlfILoRHfucEHcC?s=cl&p=a&mlu=0" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3"
+                    >
+                      Acessar Grupo
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
 
       {/* Footer / Final CTA */}
       <footer className="mt-auto border-t py-12 bg-card">
