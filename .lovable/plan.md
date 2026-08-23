@@ -23,6 +23,3 @@ The user reported that the "Aberto para palpites" badge is still appearing on th
 2. Check the "Próximos Jogos" section on the Home Page.
 3. Verify that the badge status matches the current round status fetched from the backend.
 4. If a round is closed in the database, confirm it no longer says "Aberto para Palpites".
-
-### Automated Verification
-- Run a check via Playwright to inspect the text content of the badge element when the mock/real status is changed (if applicable in local test environment).
