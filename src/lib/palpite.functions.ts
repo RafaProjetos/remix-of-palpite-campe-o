@@ -347,104 +347,54 @@ export const syncPaymentStatus = createServerFn({ method: "POST" })
   .inputValidator((d: { betId: string }) => z.object({ betId: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    
-    // 1. Encontrar todos os registros de pagamento associados a esta aposta
-    const { data: payments } = await supabase
-      .from("payments")
-      .select("*")
-      .eq("bet_id", data.betId)
-      .eq("user_id", userId);
-      
-    if (!payments || payments.length === 0) {
-      // Se não há registros locais, mas temos o betId, vamos tentar buscar no Mercado Pago pelo external_reference
-      console.log(`syncPaymentStatus: No local payments for bet ${data.betId}, searching Mercado Pago...`);
+
+    // Garante que a aposta pertence ao usuário antes de reconciliar
+    const { data: bet } = await supabase
+      .from("bets")
+      .select("id, status")
+      .eq("id", data.betId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (!bet) throw new Error("Aposta não encontrada.");
+    if (bet.status === "paid") {
+      return { status: "approved", message: "Esta aposta já está confirmada como paga." };
     }
 
-    const { getMercadoPagoPayment, getMercadoPagoPaymentByPreference, searchMercadoPagoPaymentsByExternalReference } = await import("./palpite.server");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { reconcileBetPayments } = await import("./palpite.server");
+    return reconcileBetPayments(data.betId);
+  });
 
-    // 2. Buscar TODOS os pagamentos para esta aposta no Mercado Pago pelo external_reference (nosso bet_id)
-    let mpPayments: any[] = [];
-    try {
-      mpPayments = await searchMercadoPagoPaymentsByExternalReference(data.betId);
-      console.log(`syncPaymentStatus: Found ${mpPayments.length} payments on MP for bet ${data.betId}`);
-    } catch (e) {
-      console.error("syncPaymentStatus: Error searching by external reference", e);
+/**
+ * Sincroniza TODAS as apostas pendentes do usuário logado.
+ * Usado na página de retorno do pagamento para confirmar automaticamente
+ * mesmo quando o webhook do Mercado Pago não chega.
+ */
+export const syncMyPendingBets = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+
+    const { data: pendingBets } = await supabase
+      .from("bets")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("status", "pending");
+
+    if (!pendingBets || pendingBets.length === 0) {
+      return { checked: 0, approved: 0 };
     }
 
-    // Se não encontrou nada pelo external_reference, tenta as IDs que já temos localmente
-    if (mpPayments.length === 0) {
-      for (const paymentRecord of (payments || [])) {
-        if (paymentRecord.payment_id) {
-          try {
-            const p = await getMercadoPagoPayment(paymentRecord.payment_id);
-            if (p) mpPayments.push(p);
-          } catch (e) {}
-        }
-        if (paymentRecord.preference_id) {
-          try {
-            const p = await getMercadoPagoPaymentByPreference(paymentRecord.preference_id);
-            if (p) mpPayments.push(p);
-          } catch (e) {}
-        }
+    const { reconcileBetPayments } = await import("./palpite.server");
+
+    let approved = 0;
+    for (const bet of pendingBets) {
+      try {
+        const result = await reconcileBetPayments(bet.id);
+        if (result.status === "approved") approved++;
+      } catch (e) {
+        console.error("syncMyPendingBets: erro ao reconciliar aposta", bet.id, e);
       }
     }
 
-    // 3. Processar cada pagamento encontrado
-    let approvedFound = false;
-    for (const mpPayment of mpPayments) {
-      const mpId = String(mpPayment.id);
-      
-      // Upsert local payment record
-      const { data: existing } = await supabaseAdmin
-        .from("payments")
-        .select("id")
-        .eq("payment_id", mpId)
-        .maybeSingle();
-
-      if (existing) {
-        await supabaseAdmin
-          .from("payments")
-          .update({
-            status: mpPayment.status,
-            raw: mpPayment,
-            updated_at: new Date().toISOString()
-          })
-          .eq("id", existing.id);
-      } else {
-        // Criar registro se for um pagamento novo encontrado no MP
-        const { data: betData } = await supabaseAdmin.from("bets").select("user_id, amount").eq("id", data.betId).maybeSingle();
-        if (betData) {
-          await supabaseAdmin.from("payments").insert({
-            bet_id: data.betId,
-            user_id: betData.user_id,
-            payment_id: mpId,
-            preference_id: mpPayment.preference_id ?? null,
-            status: mpPayment.status,
-            amount: betData.amount,
-            raw: mpPayment,
-          });
-        }
-      }
-
-      if (mpPayment.status === "approved") {
-        approvedFound = true;
-        await supabaseAdmin
-          .from("bets")
-          .update({ 
-            status: "paid", 
-            paid_at: mpPayment.date_approved || new Date().toISOString() 
-          })
-          .eq("id", data.betId);
-      }
-    }
-
-    if (approvedFound) {
-      return { status: "approved", message: "Pagamento aprovado e aposta efetivada!" };
-    }
-
-    return { 
-      status: "pending", 
-      message: "Nenhum pagamento aprovado encontrado. Se você já pagou, aguarde alguns instantes ou verifique seu extrato." 
-    };
+    return { checked: pendingBets.length, approved };
   });
