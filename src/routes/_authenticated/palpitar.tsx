@@ -193,13 +193,23 @@ function Palpitar() {
             </TabsList>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <Card className="bg-primary/5 border-primary/20">
+              <Card className={`relative transition-all border-2 ${activeLeagueType === 'ouro' ? 'border-yellow-500/50 bg-yellow-500/5 shadow-yellow-500/10' : activeLeagueType === 'bronze' ? 'border-orange-500/50 bg-orange-500/5 shadow-orange-500/10' : 'bg-primary/5 border-primary/20'}`}>
+                {activeLeagueType === 'bronze' && (
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-10">
+                    <Badge className="bg-orange-600 text-white border-none text-[8px] font-bold px-2 py-0">POPULAR</Badge>
+                  </div>
+                )}
+                {activeLeagueType === 'ouro' && (
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-10">
+                    <Badge className="bg-yellow-500 text-black border-none text-[8px] font-bold px-2 py-0">ELITE</Badge>
+                  </div>
+                )}
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-2 mb-2">
-                    <Trophy className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium">Pote Líquido</span>
+                    <Trophy className={`h-4 w-4 ${activeLeagueType === 'ouro' ? 'text-yellow-600' : activeLeagueType === 'bronze' ? 'text-orange-600' : 'text-primary'}`} />
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Pote Líquido</span>
                   </div>
-                  <div className="text-2xl font-bold">
+                  <div className="text-2xl font-black">
                     {activeLeagueType === 'free' ? "Troféus" : `R$ ${netPot.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
                   </div>
                 </CardContent>
@@ -209,9 +219,9 @@ function Palpitar() {
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-2 mb-2">
                     <Users className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium">Participantes</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Participantes</span>
                   </div>
-                  <div className="text-2xl font-bold">{participants}</div>
+                  <div className="text-2xl font-black">{participants}</div>
                 </CardContent>
               </Card>
 
@@ -219,9 +229,9 @@ function Palpitar() {
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-2 mb-2">
                     <Info className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium">Custo de Entrada</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Custo Entrada</span>
                   </div>
-                  <div className="text-2xl font-bold">
+                  <div className="text-2xl font-black">
                     {activeLeague?.entry_fee === 0 ? "Grátis" : `R$ ${Number(activeLeague?.entry_fee).toFixed(2)}`}
                   </div>
                 </CardContent>
