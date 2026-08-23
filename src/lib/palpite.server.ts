@@ -194,6 +194,7 @@ export async function getMercadoPagoPaymentByPreference(preferenceId: string): P
   if (!res.ok) throw new Error(`Mercado Pago [${res.status}]: ${JSON.stringify(json)}`);
   // O search retorna uma lista de pagamentos associados à preferência
   return json.results?.[0] || null;
+}
 
 export async function searchMercadoPagoPaymentsByExternalReference(externalReference: string): Promise<any[]> {
   const res = await fetch(`https://api.mercadopago.com/v1/payments/search?external_reference=${externalReference}`, {
