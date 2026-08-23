@@ -95,7 +95,12 @@ export const Route = createFileRoute('/api/public/get-fixtures')({
                   'x-rapidapi-host': 'api-football-v1.p.rapidapi.com',
                 },
               });
-              return rapidRes.json();
+              const rapidJson = await rapidRes.json();
+              // RapidAPI sinaliza erro de assinatura/chave no campo "message"
+              if (rapidJson?.message && !rapidJson?.response) {
+                return { errors: { rapidapi: rapidJson.message }, response: [] };
+              }
+              return rapidJson;
             }
             return directJson;
           };
