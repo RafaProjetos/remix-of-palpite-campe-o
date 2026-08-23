@@ -158,7 +158,7 @@ function Palpitar() {
           <Card className="border-destructive/50 bg-destructive/10">
             <CardContent className="py-6 text-center">
               <p className="font-bold text-destructive sm:text-lg">
-                Esta rodada já está encerrada para novos palpites.
+                Esta rodada já está em andamento para novos palpites.
               </p>
               <Button asChild className="mt-4" variant="outline">
                 <Link to="/meus-palpites">Ver meus palpites</Link>
@@ -256,7 +256,7 @@ function Palpitar() {
                     Seus Palpites - {activeLeague?.name}
                   </CardTitle>
                   <Badge variant={pago ? "default" : "secondary"}>
-                    {pago ? "Confirmado" : activeLeagueType === 'free' ? "Gratuito" : "Pendente"}
+                    {pago ? "Confirmado" : activeLeagueType === 'free' ? "Gratuito" : isClosed ? "Rodada em andamento" : "Pendente"}
                   </Badge>
                 </div>
               </CardHeader>
