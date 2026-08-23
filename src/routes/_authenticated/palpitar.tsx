@@ -48,13 +48,20 @@ function Palpitar() {
   const ligas = useQuery({ queryKey: ["leagues"], queryFn: () => carregarLigas({}) });
   const activeLeague = ligas.data?.find(l => l.type === activeLeagueType);
 
-  // A rota já responde do cache do servidor; staleTime evita refetch a cada navegação
+  // A rota já responde do cache do servidor; staleTime evita refetch a cada navegação.
+  // Se a API externa falhar, retorna vazio e a tela usa os jogos do banco (fallback).
   const fixturesQuery = useQuery({
     queryKey: ["fixtures-atuais"],
     queryFn: async () => {
-      const res = await fetch("/api/public/get-fixtures");
-      if (!res.ok) throw new Error("Falha ao buscar jogos da API");
-      return res.json() as Promise<{ round: string; fixtures: any[] }>;
+      try {
+        const res = await fetch("/api/public/get-fixtures");
+        if (!res.ok) return { round: null, fixtures: [] };
+        const json = await res.json();
+        if (json?.error) return { round: null, fixtures: [] };
+        return json as { round: string; fixtures: any[] };
+      } catch {
+        return { round: null, fixtures: [] };
+      }
     },
     staleTime: 5 * 60 * 1000,
   });
