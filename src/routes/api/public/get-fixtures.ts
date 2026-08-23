@@ -76,14 +76,36 @@ export const Route = createFileRoute('/api/public/get-fixtures')({
             });
           }
 
+          // A chave pode ser do painel direto (api-sports.io) ou do RapidAPI.
+          // Tenta o acesso direto primeiro; se a chave for rejeitada, tenta via RapidAPI.
+          const fetchFromProvider = async (path: string) => {
+            const directRes = await fetch(`https://v3.football.api-sports.io${path}`, {
+              headers: { 'x-apisports-key': apiKey },
+            });
+            const directJson = await directRes.json();
+            const directErrors = directJson.errors;
+            const isTokenError =
+              directErrors &&
+              (directErrors.token ||
+                (typeof directErrors === 'string' && directErrors.includes('key')));
+            if (isTokenError) {
+              const rapidRes = await fetch(`https://api-football-v1.p.rapidapi.com/v3${path}`, {
+                headers: {
+                  'x-rapidapi-key': apiKey,
+                  'x-rapidapi-host': 'api-football-v1.p.rapidapi.com',
+                },
+              });
+              return rapidRes.json();
+            }
+            return directJson;
+          };
+
           // Descobre a rodada atual, se não informada
           let round = roundParam;
           if (!round) {
-            const currentRoundRes = await fetch(
-              `https://v3.football.api-sports.io/fixtures/rounds?league=${leagueId}&season=${season}&current=true`,
-              { headers: { 'x-apisports-key': apiKey } },
+            const currentRoundJson = await fetchFromProvider(
+              `/fixtures/rounds?league=${leagueId}&season=${season}&current=true`,
             );
-            const currentRoundJson = await currentRoundRes.json();
             if (currentRoundJson.errors && Object.keys(currentRoundJson.errors).length > 0) {
               throw new Error(`API-Football: ${JSON.stringify(currentRoundJson.errors)}`);
             }
@@ -98,12 +120,9 @@ export const Route = createFileRoute('/api/public/get-fixtures')({
           }
 
           // Busca os jogos da rodada
-          const fixturesRes = await fetch(
-            `https://v3.football.api-sports.io/fixtures?league=${leagueId}&season=${season}&round=${encodeURIComponent(round)}`,
-            { headers: { 'x-apisports-key': apiKey } },
+          const fixturesJson = await fetchFromProvider(
+            `/fixtures?league=${leagueId}&season=${season}&round=${encodeURIComponent(round)}`,
           );
-
-          const fixturesJson = await fixturesRes.json();
           if (fixturesJson.errors && Object.keys(fixturesJson.errors).length > 0) {
             throw new Error(`API-Football: ${JSON.stringify(fixturesJson.errors)}`);
           }
