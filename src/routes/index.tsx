@@ -28,7 +28,12 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
-  const { round, matches, stats } = Route.useLoaderData();
+  const { round, matches } = Route.useLoaderData();
+  
+  const closesAt = round?.closes_at ? new Date(round.closes_at) : null;
+  const isClosed = !!(round?.status !== "open" || (closesAt && closesAt < new Date()));
+  
+  const { stats } = Route.useLoaderData() as any;
   const ranking = useQuery({
     queryKey: ["rankings", round?.id ?? null],
     queryFn: () => getRankings({ data: { roundId: round?.id ?? null } }),
