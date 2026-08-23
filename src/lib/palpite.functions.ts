@@ -348,69 +348,75 @@ export const syncPaymentStatus = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
     
-    // 1. Encontrar o pagamento associado a esta aposta
-    const { data: paymentRecord } = await supabase
+    // 1. Encontrar todos os registros de pagamento associados a esta aposta
+    const { data: payments } = await supabase
       .from("payments")
       .select("*")
       .eq("bet_id", data.betId)
-      .eq("user_id", userId)
-      .maybeSingle();
+      .eq("user_id", userId);
       
-    if (!paymentRecord || !paymentRecord.payment_id) {
-      if (paymentRecord?.preference_id) {
-        const { getMercadoPagoPaymentByPreference } = await import("./palpite.server");
-        const mpPayment = await getMercadoPagoPaymentByPreference(paymentRecord.preference_id);
-        
-        if (mpPayment) {
-          // Atualizar com o payment_id encontrado
-          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          await supabaseAdmin
-            .from("payments")
-            .update({ payment_id: String(mpPayment.id), status: mpPayment.status, raw: mpPayment })
-            .eq("id", paymentRecord.id);
-          
-          if (mpPayment.status === "approved") {
-            await supabaseAdmin.from("bets").update({ status: "paid", paid_at: mpPayment.date_approved || new Date().toISOString() }).eq("id", data.betId);
-            return { status: "approved", message: "Pagamento aprovado!" };
-          }
-          return { status: mpPayment.status, message: `Status: ${mpPayment.status}` };
-        }
-      }
-      throw new Error("ID de pagamento não encontrado. Tente concluir o pagamento novamente.");
+    if (!payments || payments.length === 0) {
+      throw new Error("Registro de pagamento não encontrado para esta aposta.");
     }
 
-    // 2. Consultar o status atual no Mercado Pago
-    const { getMercadoPagoPayment } = await import("./palpite.server");
-    const mpPayment = await getMercadoPagoPayment(paymentRecord.payment_id);
-    
-    if (!mpPayment) throw new Error("Não foi possível consultar o status no Mercado Pago.");
-
-    // 3. Atualizar o banco de dados local se o status mudou
+    const { getMercadoPagoPayment, getMercadoPagoPaymentByPreference } = await import("./palpite.server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    
-    await supabaseAdmin
-      .from("payments")
-      .update({
-        status: mpPayment.status,
-        raw: mpPayment,
-        updated_at: new Date().toISOString()
-      })
-      .eq("id", paymentRecord.id);
 
-    if (mpPayment.status === "approved") {
-      await supabaseAdmin
-        .from("bets")
-        .update({ 
-          status: "paid", 
-          paid_at: mpPayment.date_approved || new Date().toISOString() 
-        })
-        .eq("id", data.betId);
-      
-      return { status: "approved", message: "Pagamento aprovado e aposta efetivada!" };
+    for (const paymentRecord of payments) {
+      let mpPayment = null;
+
+      // Se já tem payment_id, consulta direto
+      if (paymentRecord.payment_id) {
+        try {
+          mpPayment = await getMercadoPagoPayment(paymentRecord.payment_id);
+        } catch (e) {
+          console.error(`Error fetching payment ${paymentRecord.payment_id}:`, e);
+        }
+      }
+
+      // Se não encontrou ou não tinha payment_id, tenta pela preference_id
+      if (!mpPayment && paymentRecord.preference_id) {
+        try {
+          mpPayment = await getMercadoPagoPaymentByPreference(paymentRecord.preference_id);
+          if (mpPayment && !paymentRecord.payment_id) {
+            // Vincula o ID encontrado ao registro
+            await supabaseAdmin
+              .from("payments")
+              .update({ payment_id: String(mpPayment.id) })
+              .eq("id", paymentRecord.id);
+          }
+        } catch (e) {
+          console.error(`Error fetching preference ${paymentRecord.preference_id}:`, e);
+        }
+      }
+
+      if (mpPayment) {
+        // Atualizar o banco com o status mais recente
+        await supabaseAdmin
+          .from("payments")
+          .update({
+            status: mpPayment.status,
+            raw: mpPayment,
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", paymentRecord.id);
+
+        if (mpPayment.status === "approved") {
+          await supabaseAdmin
+            .from("bets")
+            .update({ 
+              status: "paid", 
+              paid_at: mpPayment.date_approved || new Date().toISOString() 
+            })
+            .eq("id", data.betId);
+          
+          return { status: "approved", message: "Pagamento aprovado e aposta efetivada!" };
+        }
+      }
     }
 
     return { 
-      status: mpPayment.status, 
-      message: `Status atual: ${mpPayment.status}. Aguarde a compensação.` 
+      status: "pending", 
+      message: "Nenhum pagamento aprovado encontrado. Se você já pagou, aguarde alguns instantes ou verifique seu extrato." 
     };
   });
