@@ -158,7 +158,7 @@ function Home() {
             </div>
             {round && (
               <Badge variant={round.status === "open" ? "default" : "secondary"} className="w-fit px-4 py-1 text-sm font-bold">
-                {round.status === "open" ? "Aberto para Palpites" : "Rodada Encerrada"}
+                {round.status === "open" ? "Aberto para Palpites" : "Rodada em andamento"}
               </Badge>
             )}
           </CardHeader>
@@ -187,7 +187,7 @@ function Home() {
                     />
                   </div>
                   <div className="flex flex-col items-center px-4">
-                    <span className="rounded-full bg-primary/10 px-4 py-1 text-xs font-black text-primary mb-1">
+                    <span className="rounded-full bg-primary/10 px-6 py-2 text-sm font-black text-primary mb-1">
                       {m.home_score !== null && m.away_score !== null
                         ? `${m.home_score} x ${m.away_score}`
                         : "VS"}

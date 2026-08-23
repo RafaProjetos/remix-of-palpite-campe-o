@@ -233,7 +233,7 @@ function Admin() {
               rodada.data?.round?.status === "open"
                 ? (rodada.data?.round?.closes_at && new Date(rodada.data.round.closes_at) < new Date() ? "Fechada (Horário)" : "Aberta")
                 : rodada.data?.round?.status === "closed"
-                  ? "Encerrada"
+                  ? "Rodada em andamento"
                   : rodada.data?.round?.status === "validated"
                     ? "Validada"
                     : "-"
