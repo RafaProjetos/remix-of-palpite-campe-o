@@ -63,7 +63,9 @@ function MeusPalpites() {
             <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Meus Palpites</h1>
             {round && (
               <p className="text-sm text-muted-foreground">
-                {round.title} • {isClosed ? "Rodada em andamento" : "Aberta até " + new Date(round.closes_at!).toLocaleString()}
+                {round.title} • {isClosed 
+                  ? (round.status === "finished" || round.status === "closed" ? "Rodada encerrada" : "Rodada em andamento") 
+                  : "Aberta até " + new Date(round.closes_at!).toLocaleString()}
               </p>
             )}
           </div>
@@ -75,7 +77,9 @@ function MeusPalpites() {
               </div>
             )}
             <Badge variant={isClosed ? "secondary" : "default"} className="h-fit">
-              {isClosed ? "Rodada em andamento" : "Rodada Aberta"}
+              {isClosed 
+                ? (round?.status === "finished" || round?.status === "closed" ? "Rodada encerrada" : "Rodada em andamento") 
+                : "Rodada Aberta"}
             </Badge>
           </div>
         </div>
