@@ -219,7 +219,7 @@ function Home() {
                     i % 2 === 0 ? 'md:border-r' : ''
                   } ${i < matches.length - 2 ? 'border-b' : (i < matches.length - 1 ? 'border-b md:border-b-0' : '')}`}
                 >
-                  <div className="flex flex-col items-center gap-2 flex-1 min-w-0">
+                  <div className="flex flex-col items-center gap-2 flex-[1.5] min-w-0">
                     <TeamBadge 
                       name={m.home_team} 
                       logo={m.home_logo} 
@@ -241,7 +241,7 @@ function Home() {
                       </span>
                     )}
                   </div>
-                  <div className="flex flex-col items-center gap-2 flex-1 min-w-0">
+                  <div className="flex flex-col items-center gap-2 flex-[1.5] min-w-0">
                     <TeamBadge 
                       name={m.away_team} 
                       logo={m.away_logo} 
