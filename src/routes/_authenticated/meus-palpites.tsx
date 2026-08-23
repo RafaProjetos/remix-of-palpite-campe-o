@@ -64,11 +64,26 @@ function MeusPalpites() {
   const picks = (aposta.data?.picks ?? []) as any[];
   const pickMap = new Map(picks.map((p) => [p.match_id, p]));
   const totalPoints = aposta.data?.bet?.total_points ?? 0;
+  const betLeague = (aposta.data?.bet as any)?.leagues;
   
   const isValidated = round?.status === "validated";
   const isClosed = 
     round?.status !== "open" || 
     (round?.closes_at && new Date(round.closes_at) < new Date());
+    
+  const leagueColors = {
+    free: "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800/50 dark:text-gray-200 dark:border-gray-700",
+    bronze: "bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-950/30 dark:text-orange-300 dark:border-orange-900/50",
+    prata: "bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800/50 dark:text-slate-200 dark:border-slate-700",
+    ouro: "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-950/30 dark:text-yellow-300 dark:border-yellow-900/50"
+  };
+
+  const leagueLabels = {
+    free: "Liga Free",
+    bronze: "Liga Bronze",
+    prata: "Liga Prata",
+    ouro: "Liga Ouro"
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -76,7 +91,17 @@ function MeusPalpites() {
       <main className="mx-auto max-w-3xl space-y-6 px-4 py-10">
         <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 bg-card p-6 rounded-xl border border-border/50 shadow-sm">
           <div className="space-y-3">
-            <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Meus Palpites</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Meus Palpites</h1>
+              {betLeague && (
+                <Badge 
+                  variant="outline" 
+                  className={`capitalize font-bold px-2 py-0.5 text-[10px] sm:text-xs ${leagueColors[betLeague.type as keyof typeof leagueColors] || leagueColors.free}`}
+                >
+                  {leagueLabels[betLeague.type as keyof typeof leagueLabels] || betLeague.name}
+                </Badge>
+              )}
+            </div>
             
             <div className="flex flex-col gap-2">
               <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Histórico de Rodadas</span>
