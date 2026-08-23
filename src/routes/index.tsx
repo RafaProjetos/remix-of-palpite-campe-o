@@ -162,8 +162,8 @@ function Home() {
               </CardTitle>
             </div>
             {round && (
-              <Badge variant={round.status === "open" ? "default" : "secondary"} className="w-fit px-4 py-1 text-sm font-bold">
-                {round.status === "open" 
+              <Badge variant={!isClosed ? "default" : "secondary"} className="w-fit px-4 py-1 text-sm font-bold">
+                {!isClosed 
                   ? "Aberto para Palpites" 
                   : (round.status === "finished" || round.status === "closed") 
                     ? "Rodada Encerrada" 
