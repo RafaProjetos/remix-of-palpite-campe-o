@@ -22,7 +22,7 @@ function formatarRestante(ms: number) {
 
 export function RoundDeadlineBar() {
   const isHydrated = useHydrated();
-  const rodada = useQuery({ queryKey: ["rodada-atual"], queryFn: () => getCurrentRound({}) });
+  const rodada = useQuery({ queryKey: ["rodada-atual"], queryFn: () => getCurrentRound({ data: {} }) });
   const [agora, setAgora] = useState(() => (typeof window !== "undefined" ? Date.now() : 0));
 
   useEffect(() => {

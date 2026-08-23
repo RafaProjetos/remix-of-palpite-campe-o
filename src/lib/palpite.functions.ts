@@ -27,22 +27,39 @@ export const getLeagueStats = createServerFn({ method: "GET" })
     return (stats as any)?.[0] ?? null;
   });
 
-export const getCurrentRound = createServerFn({ method: "GET" }).handler(async () => {
+export const getCurrentRound = createServerFn({ method: "GET" })
+  .inputValidator((d: { roundId?: string | null }) => z.object({ roundId: z.string().uuid().nullable().optional() }).parse(d))
+  .handler(async ({ data }) => {
+    const { publicClient } = await import("./palpite.server");
+    const supabase = publicClient();
+    
+    let query = supabase.from("rounds").select("*");
+    
+    if (data.roundId) {
+      query = query.eq("id", data.roundId);
+    } else {
+      query = query.order("created_at", { ascending: false }).limit(1);
+    }
+
+    const { data: round } = await query.maybeSingle();
+    
+    if (!round) return { round: null, matches: [] as any[] };
+    const { data: matches } = await supabase
+      .from("matches")
+      .select("*")
+      .eq("round_id", round.id)
+      .order("position");
+    return { round, matches: matches ?? [] };
+  });
+
+export const getRounds = createServerFn({ method: "GET" }).handler(async () => {
   const { publicClient } = await import("./palpite.server");
   const supabase = publicClient();
-  const { data: round } = await supabase
+  const { data } = await supabase
     .from("rounds")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (!round) return { round: null, matches: [] as any[], stats: null as any };
-  const { data: matches } = await supabase
-    .from("matches")
-    .select("*")
-    .eq("round_id", round.id)
-    .order("position");
-  return { round, matches: matches ?? [] };
+    .select("id, title, number, status, closes_at")
+    .order("created_at", { ascending: false });
+  return data ?? [];
 });
 
 export const getRankings = createServerFn({ method: "GET" })
@@ -290,4 +307,29 @@ export const startPayment = createServerFn({ method: "POST" })
     });
 
     return { initPoint: pref.initPoint };
+  });
+
+export const deleteBet = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { betId: string }) => z.object({ betId: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    
+    const { data: bet, error: fetchError } = await supabase
+      .from("bets")
+      .select("status, user_id")
+      .eq("id", data.betId)
+      .single();
+      
+    if (fetchError || !bet) throw new Error("Aposta não encontrada.");
+    if (bet.user_id !== userId) throw new Error("Não autorizado.");
+    if (bet.status === "paid") throw new Error("Apostas pagas não podem ser canceladas.");
+
+    const { error: deleteError } = await supabase
+      .from("bets")
+      .delete()
+      .eq("id", data.betId);
+
+    if (deleteError) throw new Error(deleteError.message);
+    return { ok: true };
   });

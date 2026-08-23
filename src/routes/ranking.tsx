@@ -21,7 +21,7 @@ export const Route = createFileRoute("/ranking")({
       { property: "og:description", content: "Ranking da rodada e ranking geral acumulado do bolão." },
     ],
   }),
-  loader: () => getCurrentRound(),
+  loader: () => getCurrentRound({ data: {} }),
   component: RankingPage,
 });
 

@@ -57,8 +57,8 @@ export const Route = createFileRoute("/_authenticated/admin")({
 type Modo = "none" | "api" | "manual" | "edit-matches";
 
 function Admin() {
-  const status = useQuery({ queryKey: ["meu-status"], queryFn: () => getMyStatus({}) });
-  const rodada = useQuery({ queryKey: ["rodada-atual"], queryFn: () => getCurrentRound({}) });
+  const status = useQuery({ queryKey: ["meu-status"], queryFn: () => getMyStatus({ data: undefined }) });
+  const rodada = useQuery({ queryKey: ["rodada-atual"], queryFn: () => getCurrentRound({ data: {} }) });
   const roundId = rodada.data?.round?.id as string | undefined;
 
   const overviewFn = useServerFn(adminOverview);
