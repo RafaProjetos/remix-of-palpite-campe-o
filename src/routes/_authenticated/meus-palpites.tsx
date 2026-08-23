@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { getCurrentRound, getMyBet, getMyStatus, getRounds } from "@/lib/palpite.functions";
+import { getCurrentRound, getMyBet, getMyStatus, getRounds, startPayment } from "@/lib/palpite.functions";
 import { SiteHeader } from "@/components/site-header";
 import { TeamBadge } from "@/components/team-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/meus-palpites")({
   head: () => ({
@@ -25,8 +27,10 @@ function MeusPalpites() {
   const carregarAposta = useServerFn(getMyBet);
   const carregarStatus = useServerFn(getMyStatus);
   const carregarListaRodadas = useServerFn(getRounds);
+  const dispararPagamento = useServerFn(startPayment);
 
   const [selectedRoundId, setSelectedRoundId] = useState<string>("");
+  const [isPaying, setIsPaying] = useState(false);
 
   const listaRodadas = useQuery({ queryKey: ["lista-rodadas"], queryFn: () => carregarListaRodadas({}) });
   const rodada = useQuery({ 
@@ -65,6 +69,28 @@ function MeusPalpites() {
   const pickMap = new Map(picks.map((p) => [p.match_id, p]));
   const totalPoints = aposta.data?.bet?.total_points ?? 0;
   const betLeague = (aposta.data?.bet as any)?.leagues;
+  const betStatus = aposta.data?.bet?.status;
+  
+  const isPaidLeague = betLeague?.type && betLeague.type !== 'free';
+  const isPending = isPaidLeague && betStatus !== 'paid';
+
+  const handleFinishPayment = async () => {
+    if (!aposta.data?.bet?.id) return;
+    
+    setIsPaying(true);
+    try {
+      const { initPoint } = await dispararPagamento({
+        data: {
+          betId: aposta.data.bet.id,
+          origin: window.location.origin,
+        },
+      });
+      window.location.href = initPoint;
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao iniciar pagamento");
+      setIsPaying(false);
+    }
+  };
   
   const isValidated = round?.status === "validated";
   const isClosed = 
@@ -122,7 +148,7 @@ function MeusPalpites() {
           </div>
           <div className="flex flex-col items-end gap-3 sm:text-right">
             {(isClosed || totalPoints > 0) && (
-              <div className="flex flex-col items-end">
+              <div className={`flex flex-col items-end transition-all duration-300 ${isPending ? 'opacity-40 grayscale-[0.8]' : 'opacity-100'}`}>
                 <span className="text-xs font-medium uppercase text-muted-foreground">{isValidated ? "Pontuação Final" : "Pontuação Parcial"}</span>
                 <span className="text-2xl font-black text-primary">{totalPoints} pts</span>
               </div>
@@ -171,7 +197,7 @@ function MeusPalpites() {
                     >
                       {/* Pontuação do Jogo */}
                       {hasResult && (
-                        <div className={`absolute top-0 right-0 rounded-bl-lg px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white ${points > 0 ? 'bg-green-600' : 'bg-muted-foreground/50'}`}>
+                        <div className={`absolute top-0 right-0 rounded-bl-lg px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white ${isPending ? 'bg-muted-foreground/30 opacity-50' : (points > 0 ? 'bg-green-600' : 'bg-muted-foreground/50')}`}>
                           {points > 0 ? `+${points} pts` : '0 pts'}
                         </div>
                       )}
@@ -189,7 +215,7 @@ function MeusPalpites() {
 
                         {/* Placar do Palpite */}
                         <div className="flex flex-col items-center gap-1">
-                          <div className="flex items-center gap-1 sm:gap-2">
+                          <div className={`flex items-center gap-1 sm:gap-2 transition-all duration-300 ${isPending ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
                             <div className="flex h-8 w-9 items-center justify-center rounded bg-background font-black text-primary shadow-sm ring-1 ring-primary/20 sm:h-10 sm:w-11 sm:text-lg">
                               {pick?.home_score ?? "-"}
                             </div>
@@ -219,12 +245,36 @@ function MeusPalpites() {
               </CardContent>
             </Card>
 
-            {aposta.data.bet.status === "paid" && (
-              <div className="flex items-center gap-3 rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm font-semibold text-primary shadow-sm">
-                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
-                  $
+            {betStatus === "paid" ? (
+              <div className="flex items-center gap-3 rounded-lg border border-green-500/20 bg-green-500/5 p-4 text-sm font-semibold text-green-700 shadow-sm dark:text-green-400">
+                <CheckCircle2 className="h-5 w-5 shrink-0" />
+                Seu palpite está efetivado e você está participando desta rodada!
+              </div>
+            ) : isPending ? (
+              <div className="flex flex-col gap-4 rounded-lg border border-amber-500/20 bg-amber-500/5 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3 text-sm font-semibold text-amber-700 dark:text-amber-400">
+                  <AlertCircle className="h-5 w-5 shrink-0" />
+                  <span>Pagamento Pendente: Seu palpite ainda não vale para a premiação.</span>
                 </div>
-                Você está participando do prêmio desta rodada!
+                <Button 
+                  onClick={handleFinishPayment} 
+                  disabled={isPaying}
+                  className="bg-amber-600 hover:bg-amber-700 text-white font-bold"
+                >
+                  {isPaying ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    "Concluir Pagamento"
+                  )}
+                </Button>
+              </div>
+            ) : betLeague?.type === 'free' && (
+              <div className="flex items-center gap-3 rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm font-semibold text-primary shadow-sm">
+                <CheckCircle2 className="h-5 w-5 shrink-0" />
+                Seu palpite na Liga Free está registrado!
               </div>
             )}
           </div>
