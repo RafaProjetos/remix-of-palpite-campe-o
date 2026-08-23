@@ -54,13 +54,13 @@ function Home() {
         
         <div className="container relative z-10 mx-auto max-w-6xl px-4">
           <div className="flex flex-col items-center text-center">
-            <Badge variant="outline" className="mb-6 border-accent/50 bg-accent/10 text-accent-foreground px-4 py-1.5 text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
+            <Badge variant="outline" className="mb-6 border-accent/50 bg-accent/10 text-accent-foreground px-4 py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
               Brasileirão Série A 2026
             </Badge>
-            <h1 className="max-w-4xl font-logo text-3xl leading-tight tracking-tight sm:text-6xl md:text-7xl">
+            <h1 className="max-w-4xl font-logo text-2xl leading-tight tracking-tight sm:text-6xl md:text-7xl">
               Transforme seus palpites em <span className="text-accent underline decoration-accent/30 underline-offset-8">prêmios reais</span>.
             </h1>
-            <p className="mt-8 max-w-2xl text-lg text-primary-foreground/90 sm:text-xl leading-relaxed">
+            <p className="mt-8 max-w-2xl text-base text-primary-foreground/90 sm:text-xl leading-relaxed">
               Participe do maior bolão do futebol brasileiro. Escolha sua liga, crave os placares e dispute o topo do ranking com milhares de torcedores apaixonados.
             </p>
             <div className="mt-10 flex flex-col w-full gap-4 sm:flex-row sm:w-auto">

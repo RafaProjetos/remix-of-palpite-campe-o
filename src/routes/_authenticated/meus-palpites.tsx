@@ -1,13 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { getCurrentRound, getMyBet, getMyStatus } from "@/lib/palpite.functions";
+import { getCurrentRound, getMyBet, getMyStatus, getRounds } from "@/lib/palpite.functions";
 import { SiteHeader } from "@/components/site-header";
 import { TeamBadge } from "@/components/team-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState, useEffect } from "react";
 
 export const Route = createFileRoute("/_authenticated/meus-palpites")({
   head: () => ({
@@ -58,18 +59,28 @@ function MeusPalpites() {
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
       <main className="mx-auto max-w-3xl space-y-6 px-4 py-10">
-        <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-          <div className="space-y-1">
+        <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 bg-card p-6 rounded-xl border border-border/50 shadow-sm">
+          <div className="space-y-3">
             <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Meus Palpites</h1>
-            {round && (
-              <p className="text-sm text-muted-foreground">
-                {round.title} • {isClosed 
-                  ? (round.status === "finished" || round.status === "closed" ? "Rodada encerrada" : "Rodada em andamento") 
-                  : "Aberta até " + new Date(round.closes_at!).toLocaleString()}
-              </p>
-            )}
+            
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Histórico de Rodadas</span>
+              <Select value={selectedRoundId} onValueChange={setSelectedRoundId}>
+                <SelectTrigger className="w-full sm:w-[280px] bg-background">
+                  <SelectValue placeholder="Selecione a rodada" />
+                </SelectTrigger>
+                <SelectContent>
+                  {listaRodadas.data?.map((r) => (
+                    <SelectItem key={r.id} value={r.id}>
+                      {r.title || `Rodada ${r.number}`} 
+                      {r.status === 'open' && ' (Aberta)'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col items-end gap-3 sm:text-right">
             {(isClosed || totalPoints > 0) && (
               <div className="flex flex-col items-end">
                 <span className="text-xs font-medium uppercase text-muted-foreground">{isValidated ? "Pontuação Final" : "Pontuação Parcial"}</span>
