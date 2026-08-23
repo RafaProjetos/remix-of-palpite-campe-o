@@ -24,46 +24,74 @@ export const Route = createFileRoute("/api/public/webhooks/mercadopago")({
             return new Response("ignored", { status: 200 });
           }
 
-          const { getMercadoPagoPayment } = await import("@/lib/palpite.server");
-          const payment = await getMercadoPagoPayment(String(paymentId));
+          const { getMercadoPagoPayment, getMercadoPagoPaymentByPreference } = await import("@/lib/palpite.server");
           
-          // Debugging
-          console.log("Mercado Pago Webhook: Received status", payment.status, "for payment", paymentId);
+          let payment = null;
+          try {
+            payment = await getMercadoPagoPayment(String(paymentId));
+          } catch (e) {
+            console.error("Mercado Pago Webhook: Error fetching payment by ID", paymentId);
+          }
+
+          if (!payment) {
+            const prefId = body?.preference_id || body?.data?.preference_id;
+            if (prefId) {
+              try {
+                payment = await getMercadoPagoPaymentByPreference(prefId);
+              } catch (e) {
+                console.error("Mercado Pago Webhook: Error fetching by preference", prefId);
+              }
+            }
+          }
+
+          if (!payment) {
+            return new Response("payment not found", { status: 200 });
+          }
+          
+          console.log("Mercado Pago Webhook: Received status", payment.status, "for payment", payment.id || paymentId);
           
           const betId = payment.external_reference as string | undefined;
-          if (!betId) {
-            console.warn("Mercado Pago Webhook: No external_reference (betId) found in payment", paymentId);
+          const preferenceId = payment.preference_id as string | undefined;
+
+          if (!betId && !preferenceId) {
+            console.warn("Mercado Pago Webhook: No reference found in payment", payment.id);
             return new Response("no reference", { status: 200 });
           }
 
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-          // Ensure the payment record exists or update it
-          const { data: existingPayment } = await supabaseAdmin
-            .from("payments")
-            .select("id")
-            .eq("bet_id", betId)
-            .maybeSingle();
+          // Busca o registro de pagamento existente
+          let existingPayment = null;
+          if (betId) {
+            const { data } = await supabaseAdmin.from("payments").select("*").eq("bet_id", betId).maybeSingle();
+            existingPayment = data;
+          }
+          
+          if (!existingPayment && preferenceId) {
+            const { data } = await supabaseAdmin.from("payments").select("*").eq("preference_id", preferenceId).maybeSingle();
+            existingPayment = data;
+          }
+
+          const targetBetId = betId || existingPayment?.bet_id;
 
           if (existingPayment) {
             await supabaseAdmin
               .from("payments")
               .update({
-                payment_id: String(paymentId),
+                payment_id: String(payment.id),
                 status: payment.status,
                 raw: payment,
                 updated_at: new Date().toISOString(),
               })
-              .eq("bet_id", betId);
-          } else {
-            // It might happen that the payment was created directly in MP or the initial insert failed
-            // We find the bet to get the user_id and amount
-            const { data: betData } = await supabaseAdmin.from("bets").select("user_id, amount").eq("id", betId).maybeSingle();
+              .eq("id", existingPayment.id);
+          } else if (targetBetId) {
+            const { data: betData } = await supabaseAdmin.from("bets").select("user_id, amount").eq("id", targetBetId).maybeSingle();
             if (betData) {
               await supabaseAdmin.from("payments").insert({
-                bet_id: betId,
+                bet_id: targetBetId,
                 user_id: betData.user_id,
-                payment_id: String(paymentId),
+                payment_id: String(payment.id),
+                preference_id: preferenceId ?? null,
                 status: payment.status,
                 amount: betData.amount,
                 raw: payment,
@@ -71,33 +99,20 @@ export const Route = createFileRoute("/api/public/webhooks/mercadopago")({
             }
           }
 
-          if (payment.status === "approved") {
-            const { data: bet } = await supabaseAdmin
-              .from("bets")
-              .select("id, status")
-              .eq("id", betId)
-              .maybeSingle();
-              
+          if (payment.status === "approved" && targetBetId) {
+            const { data: bet } = await supabaseAdmin.from("bets").select("id, status").eq("id", targetBetId).maybeSingle();
             if (bet && bet.status !== "paid") {
-              const { error: updateError } = await supabaseAdmin
-                .from("bets")
-                .update({ 
-                  status: "paid", 
-                  paid_at: new Date().toISOString() 
-                })
-                .eq("id", betId);
-              
-              if (updateError) {
-                console.error("Mercado Pago Webhook: Error updating bet to paid", updateError);
-              } else {
-                console.log("Mercado Pago Webhook: Bet", betId, "successfully marked as paid");
-              }
+              await supabaseAdmin.from("bets").update({ 
+                status: "paid", 
+                paid_at: payment.date_approved || new Date().toISOString() 
+              }).eq("id", targetBetId);
+              console.log("Mercado Pago Webhook: Bet", targetBetId, "successfully marked as paid");
             }
           }
 
           return new Response("ok", { status: 200 });
         } catch (error) {
-          console.error("mercadopago webhook", error);
+          console.error("mercadopago webhook error", error);
           return new Response("error", { status: 500 });
         }
       },
