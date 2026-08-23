@@ -24,16 +24,20 @@ export const Route = createFileRoute("/api/public/webhooks/mercadopago")({
             return new Response("ignored", { status: 200 });
           }
 
-          const { getMercadoPagoPayment, getMercadoPagoPaymentByPreference } = await import("@/lib/palpite.server");
+          const { getMercadoPagoPayment, getMercadoPagoPaymentByPreference, searchMercadoPagoPaymentsByExternalReference } = await import("@/lib/palpite.server");
           
           let payment = null;
+          // ALWAYS fetch the latest data from Mercado Pago directly using the ID from the notification
+          // This ensures we are using authentic data and not relying solely on the webhook payload.
           try {
             payment = await getMercadoPagoPayment(String(paymentId));
+            console.log("Mercado Pago Webhook: Verified payment data for ID", paymentId, "Status:", payment?.status);
           } catch (e) {
-            console.error("Mercado Pago Webhook: Error fetching payment by ID", paymentId);
+            console.error("Mercado Pago Webhook: Error verifying payment by ID", paymentId, e);
           }
 
           if (!payment) {
+            // Fallback to preference if ID lookup fails
             const prefId = body?.preference_id || body?.data?.preference_id;
             if (prefId) {
               try {
@@ -45,7 +49,8 @@ export const Route = createFileRoute("/api/public/webhooks/mercadopago")({
           }
 
           if (!payment) {
-            return new Response("payment not found", { status: 200 });
+            console.warn("Mercado Pago Webhook: Could not verify payment with Mercado Pago API", paymentId);
+            return new Response("payment not verifiable", { status: 200 });
           }
           
           console.log("Mercado Pago Webhook: Received status", payment.status, "for payment", payment.id || paymentId);
