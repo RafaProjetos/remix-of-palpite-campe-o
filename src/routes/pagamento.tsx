@@ -1,7 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useEffect, useState } from "react";
+import { CheckCircle2, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { SiteHeader } from "@/components/site-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { syncMyPendingBets } from "@/lib/palpite.functions";
 
 export const Route = createFileRoute("/pagamento")({
   head: () => ({
@@ -35,7 +41,42 @@ const TEXTOS: Record<string, { titulo: string; texto: string }> = {
 
 function Pagamento() {
   const { status } = Route.useSearch();
-  const info = TEXTOS[status] ?? {
+  const syncBets = useServerFn(syncMyPendingBets);
+  const [syncing, setSyncing] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
+
+  // Ao voltar do checkout do Mercado Pago, sincroniza automaticamente as
+  // apostas pendentes — garante a confirmação mesmo se o webhook não chegar.
+  useEffect(() => {
+    if (status === "falha") return;
+    let cancelled = false;
+    (async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session || cancelled) return;
+      setSyncing(true);
+      try {
+        const result = await syncBets();
+        if (cancelled) return;
+        if (result.approved > 0) {
+          setConfirmed(true);
+          toast.success("Pagamento confirmado! Sua aposta foi efetivada.");
+        }
+      } catch {
+        // usuário sem sessão válida ou falha de rede — a tela de palpites
+        // ainda oferece a sincronização manual
+      } finally {
+        if (!cancelled) setSyncing(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
+
+  const info = TEXTOS[confirmed ? "sucesso" : status] ?? {
     titulo: "Situação do pagamento",
     texto: "Confira na tela de palpites a situação atual da sua aposta.",
   };
@@ -46,10 +87,19 @@ function Pagamento() {
       <main className="mx-auto max-w-lg px-4 py-16">
         <Card>
           <CardHeader>
-            <CardTitle>{info.titulo}</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              {syncing ? (
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              ) : confirmed ? (
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
+              ) : null}
+              {info.titulo}
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">{info.texto}</p>
+            <p className="text-sm text-muted-foreground">
+              {syncing ? "Confirmando seu pagamento com o Mercado Pago..." : info.texto}
+            </p>
             <div className="flex gap-2">
               <Button asChild>
                 <Link to="/palpitar">Meus palpites</Link>
