@@ -131,7 +131,8 @@ function Palpitar() {
         navigate({ to: "/meus-palpites" });
       }
     } catch (e: any) {
-      toast.error(e?.message ?? "Não foi possível salvar.");
+      console.error("Erro ao salvar palpite:", e);
+      toast.error(e?.message || "Não foi possível salvar o palpite. Tente novamente.");
     } finally {
       setEnviando(false);
     }

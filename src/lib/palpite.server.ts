@@ -171,7 +171,8 @@ export async function createPreference(params: {
   });
   const json = (await res.json()) as any;
   if (!res.ok) {
-    throw new Error(`Mercado Pago [${res.status}]: ${JSON.stringify(json)}`);
+    console.error("Mercado Pago Error Details:", JSON.stringify(json, null, 2));
+    throw new Error(`Mercado Pago [${res.status}]: ${json.message || JSON.stringify(json)}`);
   }
   return { id: json.id as string, initPoint: (json.init_point ?? json.sandbox_init_point) as string };
 }

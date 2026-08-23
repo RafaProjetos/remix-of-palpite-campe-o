@@ -282,9 +282,10 @@ export const startPayment = createServerFn({ method: "POST" })
     if (bet.data.status === "paid") throw new Error("Esta aposta já está paga.");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: stats } = await supabaseAdmin.rpc("round_stats", { _round_id: bet.data.round_id });
-    const paidCount = Number((stats as any)?.[0]?.paid_count ?? 0);
-    const maxPlayers = Number((stats as any)?.[0]?.max_players ?? 100);
+    const { data: statsData } = await supabaseAdmin.rpc("round_stats", { _round_id: bet.data.round_id });
+    const stats = Array.isArray(statsData) ? statsData[0] : statsData;
+    const paidCount = Number(stats?.paid_count ?? 0);
+    const maxPlayers = Number(stats?.max_players ?? 100);
 
     if (paidCount >= maxPlayers) {
       throw new Error("A rodada já atingiu o limite de 100 apostadores pagantes. Tente na próxima rodada.");
@@ -300,13 +301,18 @@ export const startPayment = createServerFn({ method: "POST" })
       origin: data.origin,
     });
 
-    await supabaseAdmin.from("payments").insert({
+    const { error: paymentError } = await supabaseAdmin.from("payments").insert({
       bet_id: bet.data.id,
       user_id: userId,
       preference_id: pref.id,
       status: "pending",
       amount: bet.data.amount,
     });
+
+    if (paymentError) {
+      console.error("Payment insert error:", paymentError);
+      throw new Error(`Erro ao registrar pagamento: ${paymentError.message}`);
+    }
 
     return { initPoint: pref.initPoint };
   });
