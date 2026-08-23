@@ -42,7 +42,7 @@ function Palpitar() {
   const [enviando, setEnviando] = useState(false);
   const [activeLeagueType, setActiveLeagueType] = useState<string>("free");
 
-  const rodada = useQuery({ queryKey: ["rodada-atual"], queryFn: () => carregarRodada({}) });
+  const rodada = useQuery({ queryKey: ["rodada-atual"], queryFn: () => carregarRodada({ data: {} }) });
   
   const ligas = useQuery({ queryKey: ["leagues"], queryFn: () => carregarLigas({}) });
   const activeLeague = ligas.data?.find(l => l.type === activeLeagueType);

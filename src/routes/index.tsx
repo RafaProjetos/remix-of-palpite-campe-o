@@ -24,7 +24,7 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
-  loader: () => getCurrentRound(),
+  loader: () => getCurrentRound({ data: {} }),
   component: Home,
 });
 

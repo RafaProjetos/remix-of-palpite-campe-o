@@ -24,7 +24,7 @@ function MeusPalpites() {
   const carregarAposta = useServerFn(getMyBet);
   const carregarStatus = useServerFn(getMyStatus);
 
-  const rodada = useQuery({ queryKey: ["rodada-atual"], queryFn: () => carregarRodada({}) });
+  const rodada = useQuery({ queryKey: ["rodada-atual"], queryFn: () => carregarRodada({ data: {} }) });
   const status = useQuery({ queryKey: ["meu-status"], queryFn: () => carregarStatus({}) });
   const roundId = rodada.data?.round?.id as string | undefined;
 
