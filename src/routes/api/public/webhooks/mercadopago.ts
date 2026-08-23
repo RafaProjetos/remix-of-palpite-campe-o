@@ -91,7 +91,7 @@ export const Route = createFileRoute("/api/public/webhooks/mercadopago")({
                 bet_id: targetBetId,
                 user_id: betData.user_id,
                 payment_id: String(payment.id),
-                preference_id: preferenceId,
+                preference_id: preferenceId ?? null,
                 status: payment.status,
                 amount: betData.amount,
                 raw: payment,
