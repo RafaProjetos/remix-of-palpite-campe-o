@@ -158,7 +158,11 @@ function Home() {
             </div>
             {round && (
               <Badge variant={round.status === "open" ? "default" : "secondary"} className="w-fit px-4 py-1 text-sm font-bold">
-                {round.status === "open" ? "Aberto para Palpites" : "Rodada em andamento"}
+                {round.status === "open" 
+                  ? "Aberto para Palpites" 
+                  : (round.status === "finished" || round.status === "closed") 
+                    ? "Rodada Encerrada" 
+                    : "Rodada em andamento"}
               </Badge>
             )}
           </CardHeader>

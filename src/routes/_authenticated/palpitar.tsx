@@ -256,7 +256,15 @@ function Palpitar() {
                     Seus Palpites - {activeLeague?.name}
                   </CardTitle>
                   <Badge variant={pago ? "default" : "secondary"}>
-                    {pago ? "Confirmado" : activeLeagueType === 'free' ? "Gratuito" : isClosed ? "Rodada em andamento" : "Pendente"}
+                    {pago 
+                      ? "Confirmado" 
+                      : activeLeagueType === 'free' 
+                        ? "Gratuito" 
+                        : isClosed 
+                          ? (rodada.data?.round?.status === "finished" || rodada.data?.round?.status === "closed" 
+                              ? "Rodada Encerrada" 
+                              : "Rodada em andamento")
+                          : "Pendente"}
                   </Badge>
                 </div>
               </CardHeader>
