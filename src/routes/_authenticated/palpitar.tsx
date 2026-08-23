@@ -160,7 +160,7 @@ function Palpitar() {
               <p className="font-bold text-destructive sm:text-lg">
                 { (rodada.data?.round?.status === "finished" || rodada.data?.round?.status === "closed") 
                   ? "Esta rodada já foi encerrada."
-                  : "Esta rodada já está em andamento para novos palpites." }
+                  : "Rodada em andamento. Fechada para novos palpites." }
               </p>
               <Button asChild className="mt-4" variant="outline">
                 <Link to="/meus-palpites">Ver meus palpites</Link>
