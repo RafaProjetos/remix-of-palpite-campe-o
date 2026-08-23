@@ -6,6 +6,7 @@ import { TeamBadge } from "@/components/team-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Check } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -109,44 +110,77 @@ function Home() {
             <h2 className="text-3xl font-extrabold tracking-tight">Escolha sua Liga</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="border-2 border-transparent transition-all hover:border-primary/20">
+            {/* Liga Free */}
+            <Card className="relative flex flex-col border-2 border-slate-200 transition-all hover:border-slate-300 hover:shadow-lg dark:border-slate-800">
               <CardHeader>
-                <Badge className="w-fit mb-2 bg-slate-500">Free</Badge>
-                <CardTitle className="text-xl">Treinamento</CardTitle>
+                <Badge className="w-fit mb-2 bg-slate-500 hover:bg-slate-600">Free</Badge>
+                <CardTitle className="text-2xl font-bold">Treinamento</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">Diversão garantida e disputa no ranking global sem custos.</p>
-                <p className="text-2xl font-bold">Grátis</p>
+              <CardContent className="flex flex-col flex-1">
+                <p className="text-sm text-muted-foreground mb-6">Diversão garantida e disputa no ranking global sem custos.</p>
+                <div className="mt-auto space-y-3 mb-6">
+                  <div className="flex items-center gap-2 text-sm"><Check className="h-4 w-4 text-primary" /> <span>Ranking Global</span></div>
+                  <div className="flex items-center gap-2 text-sm"><Check className="h-4 w-4 text-primary" /> <span>Sem custos</span></div>
+                </div>
+                <div className="text-3xl font-black mb-6">Grátis</div>
+                <Button asChild variant="outline" className="w-full mt-auto font-bold"><Link to="/palpitar">Jogar Agora</Link></Button>
               </CardContent>
             </Card>
-            <Card className="border-2 border-transparent transition-all hover:border-orange-500/20">
+
+            {/* Liga Bronze */}
+            <Card className="relative flex flex-col border-2 border-orange-200 transition-all hover:border-orange-300 hover:shadow-lg dark:border-orange-900/30">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
+                <Badge className="bg-orange-600 hover:bg-orange-700 text-white border-none px-3 py-1 shadow-md uppercase text-[10px] font-black tracking-wider">Mais Popular</Badge>
+              </div>
               <CardHeader>
-                <Badge className="w-fit mb-2 bg-orange-700">Bronze</Badge>
-                <CardTitle className="text-xl">Iniciante</CardTitle>
+                <Badge className="w-fit mb-2 bg-orange-700 hover:bg-orange-800">Bronze</Badge>
+                <CardTitle className="text-2xl font-bold">Iniciante</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">Entrada acessível para quem quer começar a ganhar prêmios reais.</p>
-                <p className="text-2xl font-bold">R$ 5,00</p>
+              <CardContent className="flex flex-col flex-1">
+                <p className="text-sm text-muted-foreground mb-6">Entrada acessível para quem quer começar a ganhar prêmios reais.</p>
+                <div className="mt-auto space-y-3 mb-6">
+                  <div className="flex items-center gap-2 text-sm"><Check className="h-4 w-4 text-orange-600" /> <span>Prêmios Reais</span></div>
+                  <div className="flex items-center gap-2 text-sm"><Check className="h-4 w-4 text-orange-600" /> <span>Baixo Custo</span></div>
+                </div>
+                <div className="text-3xl font-black mb-6">R$ 5,00</div>
+                <Button asChild className="w-full mt-auto font-bold bg-orange-700 hover:bg-orange-800 text-white"><Link to="/palpitar">Participar</Link></Button>
               </CardContent>
             </Card>
-            <Card className="border-2 border-transparent transition-all hover:border-slate-400/20">
+
+            {/* Liga Prata */}
+            <Card className="relative flex flex-col border-2 border-slate-300 transition-all hover:border-slate-400 hover:shadow-lg dark:border-slate-700">
               <CardHeader>
-                <Badge className="w-fit mb-2 bg-slate-400">Prata</Badge>
-                <CardTitle className="text-xl">Competitivo</CardTitle>
+                <Badge className="w-fit mb-2 bg-slate-400 hover:bg-slate-500 text-black">Prata</Badge>
+                <CardTitle className="text-2xl font-bold">Competitivo</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">O equilíbrio ideal entre risco e recompensa para apostadores médios.</p>
-                <p className="text-2xl font-bold">R$ 20,00</p>
+              <CardContent className="flex flex-col flex-1">
+                <p className="text-sm text-muted-foreground mb-6">O equilíbrio ideal entre risco e recompensa para apostadores médios.</p>
+                <div className="mt-auto space-y-3 mb-6">
+                  <div className="flex items-center gap-2 text-sm"><Check className="h-4 w-4 text-slate-500" /> <span>Pote Médio</span></div>
+                  <div className="flex items-center gap-2 text-sm"><Check className="h-4 w-4 text-slate-500" /> <span>Ranking Segmentado</span></div>
+                </div>
+                <div className="text-3xl font-black mb-6">R$ 20,00</div>
+                <Button asChild className="w-full mt-auto font-bold bg-slate-500 hover:bg-slate-600 text-white"><Link to="/palpitar">Participar</Link></Button>
               </CardContent>
             </Card>
-            <Card className="border-2 border-primary/10 shadow-xl shadow-primary/5 transition-all hover:scale-105">
+
+            {/* Liga Ouro */}
+            <Card className="relative flex flex-col border-2 border-yellow-400 shadow-xl shadow-yellow-500/10 transition-all hover:scale-[1.02] hover:shadow-yellow-500/20 bg-gradient-to-b from-card to-yellow-500/5">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
+                <Badge className="bg-yellow-500 hover:bg-yellow-600 text-black border-none px-3 py-1 shadow-md uppercase text-[10px] font-black tracking-wider">Mais Vantajoso</Badge>
+              </div>
               <CardHeader>
-                <Badge className="w-fit mb-2 bg-yellow-500 text-black">Ouro</Badge>
-                <CardTitle className="text-xl">Elite</CardTitle>
+                <Badge className="w-fit mb-2 bg-yellow-500 text-black hover:bg-yellow-600">Ouro</Badge>
+                <CardTitle className="text-2xl font-bold">Elite</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">Para os especialistas. Pote exclusivo e premiação máxima no Top 10.</p>
-                <p className="text-2xl font-bold">R$ 50,00</p>
+              <CardContent className="flex flex-col flex-1">
+                <p className="text-sm text-muted-foreground mb-6">Para os especialistas. Pote exclusivo e premiação máxima no Top 10.</p>
+                <div className="mt-auto space-y-3 mb-6">
+                  <div className="flex items-center gap-2 text-sm"><Check className="h-4 w-4 text-yellow-600" /> <span>Maior Pote</span></div>
+                  <div className="flex items-center gap-2 text-sm"><Check className="h-4 w-4 text-yellow-600" /> <span>Prêmio Top 10</span></div>
+                </div>
+                <div className="text-3xl font-black mb-6">R$ 50,00</div>
+                <Button asChild className="w-full mt-auto font-bold bg-yellow-500 hover:bg-yellow-600 text-black"><Link to="/palpitar">Ser Elite</Link></Button>
               </CardContent>
             </Card>
           </div>
