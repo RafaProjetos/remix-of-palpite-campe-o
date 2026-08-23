@@ -24,9 +24,23 @@ function MeusPalpites() {
   const carregarRodada = useServerFn(getCurrentRound);
   const carregarAposta = useServerFn(getMyBet);
   const carregarStatus = useServerFn(getMyStatus);
+  const carregarListaRodadas = useServerFn(getRounds);
 
-  const rodada = useQuery({ queryKey: ["rodada-atual"], queryFn: () => carregarRodada({ data: {} }) });
-  const status = useQuery({ queryKey: ["meu-status"], queryFn: () => carregarStatus({}) });
+  const [selectedRoundId, setSelectedRoundId] = useState<string>("");
+
+  const listaRodadas = useQuery({ queryKey: ["lista-rodadas"], queryFn: () => carregarListaRodadas({}) });
+  const rodada = useQuery({ 
+    queryKey: ["rodada", selectedRoundId], 
+    queryFn: () => carregarRodada({ data: { roundId: selectedRoundId || undefined } }) 
+  });
+  const status = useQuery({ queryKey: ["meu-status"], queryFn: () => carregarStatus({ data: undefined }) });
+  
+  useEffect(() => {
+    if (listaRodadas.data?.length && !selectedRoundId) {
+      setSelectedRoundId(listaRodadas.data[0].id);
+    }
+  }, [listaRodadas.data]);
+
   const roundId = rodada.data?.round?.id as string | undefined;
 
   const aposta = useQuery({
@@ -70,7 +84,7 @@ function MeusPalpites() {
                   <SelectValue placeholder="Selecione a rodada" />
                 </SelectTrigger>
                 <SelectContent>
-                  {listaRodadas.data?.map((r) => (
+                  {listaRodadas.data?.map((r: any) => (
                     <SelectItem key={r.id} value={r.id}>
                       {r.title || `Rodada ${r.number}`} 
                       {r.status === 'open' && ' (Aberta)'}
