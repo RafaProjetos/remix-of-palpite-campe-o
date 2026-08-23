@@ -51,7 +51,7 @@ function Regulamento() {
       if (!data.session) return;
       setLogado(true);
     });
-  }, [status]);
+  }, [statusQuery.data]);
 
   useEffect(() => {
     if (statusQuery.data) {
