@@ -36,8 +36,9 @@ function MeusPalpites() {
   const status = useQuery({ queryKey: ["meu-status"], queryFn: () => carregarStatus({ data: undefined }) });
   
   useEffect(() => {
-    if (listaRodadas.data?.length && !selectedRoundId) {
-      setSelectedRoundId(listaRodadas.data[0].id);
+    const firstRound = listaRodadas.data?.[0];
+    if (firstRound && !selectedRoundId) {
+      setSelectedRoundId(firstRound.id);
     }
   }, [listaRodadas.data]);
 
