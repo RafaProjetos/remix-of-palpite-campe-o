@@ -158,7 +158,9 @@ function Palpitar() {
           <Card className="border-destructive/50 bg-destructive/10">
             <CardContent className="py-6 text-center">
               <p className="font-bold text-destructive sm:text-lg">
-                Esta rodada já está em andamento para novos palpites.
+                { (rodada.data?.round?.status === "finished" || rodada.data?.round?.status === "closed") 
+                  ? "Esta rodada já foi encerrada."
+                  : "Esta rodada já está em andamento para novos palpites." }
               </p>
               <Button asChild className="mt-4" variant="outline">
                 <Link to="/meus-palpites">Ver meus palpites</Link>
