@@ -300,13 +300,18 @@ export const startPayment = createServerFn({ method: "POST" })
       origin: data.origin,
     });
 
-    await supabaseAdmin.from("payments").insert({
+    const { error: paymentError } = await supabaseAdmin.from("payments").insert({
       bet_id: bet.data.id,
       user_id: userId,
       preference_id: pref.id,
       status: "pending",
       amount: bet.data.amount,
     });
+
+    if (paymentError) {
+      console.error("Payment insert error:", paymentError);
+      throw new Error(`Erro ao registrar pagamento: ${paymentError.message}`);
+    }
 
     return { initPoint: pref.initPoint };
   });
