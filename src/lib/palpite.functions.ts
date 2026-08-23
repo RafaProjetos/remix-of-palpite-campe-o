@@ -182,7 +182,7 @@ export const getMyBet = createServerFn({ method: "GET" })
   .handler(async ({ context, data }) => {
     let query = context.supabase
       .from("bets")
-      .select("*")
+      .select("*, leagues(*)")
       .eq("round_id", data.roundId)
       .eq("user_id", context.userId);
     
