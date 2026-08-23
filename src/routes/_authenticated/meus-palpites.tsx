@@ -31,7 +31,7 @@ function MeusPalpites() {
   const listaRodadas = useQuery({ queryKey: ["lista-rodadas"], queryFn: () => carregarListaRodadas({}) });
   const rodada = useQuery({ 
     queryKey: ["rodada", selectedRoundId], 
-    queryFn: () => carregarRodada({ data: { roundId: selectedRoundId || undefined } }) 
+    queryFn: () => carregarRodada({ data: { roundId: selectedRoundId || null } }) 
   });
   const status = useQuery({ queryKey: ["meu-status"], queryFn: () => carregarStatus({ data: undefined }) });
   
