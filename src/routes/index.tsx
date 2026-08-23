@@ -128,7 +128,7 @@ function Home() {
             </Card>
 
             {/* Liga Bronze */}
-            <Card className="relative flex flex-col border-2 border-orange-200 transition-all duration-300 hover:border-orange-400 hover:-translate-y-2 hover:shadow-xl dark:border-orange-900/30">
+            <Card className="relative flex flex-col border-2 border-orange-200 transition-all duration-300 hover:border-orange-400 hover:-translate-y-2 hover:scale-[1.02] hover:shadow-xl dark:border-orange-900/30">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
                 <Badge className="bg-orange-600 hover:bg-orange-700 text-white border-none px-3 py-1 shadow-md uppercase text-[10px] font-black tracking-wider">Mais Popular</Badge>
               </div>
@@ -148,7 +148,7 @@ function Home() {
             </Card>
 
             {/* Liga Prata */}
-            <Card className="relative flex flex-col border-2 border-slate-300 transition-all duration-300 hover:border-slate-400 hover:-translate-y-2 hover:shadow-xl dark:border-slate-700">
+            <Card className="relative flex flex-col border-2 border-slate-300 transition-all duration-300 hover:border-slate-400 hover:-translate-y-2 hover:scale-[1.02] hover:shadow-xl dark:border-slate-700">
               <CardHeader>
                 <Badge className="w-fit mb-2 bg-slate-400 hover:bg-slate-500 text-black">Prata</Badge>
                 <CardTitle className="text-2xl font-bold">Competitivo</CardTitle>
@@ -230,7 +230,7 @@ function Home() {
                     />
                   </div>
                   <div className="flex flex-col items-center px-4">
-                    <span className="rounded-full bg-primary/10 px-6 py-2 text-sm font-black text-primary mb-1">
+                    <span className="rounded-full bg-primary/10 px-4 py-2 text-sm font-black text-primary mb-1 whitespace-nowrap">
                       {m.home_score !== null && m.away_score !== null
                         ? `${m.home_score} x ${m.away_score}`
                         : "VS"}
