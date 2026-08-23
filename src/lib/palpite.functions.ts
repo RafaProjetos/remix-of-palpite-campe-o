@@ -28,7 +28,9 @@ export const getLeagueStats = createServerFn({ method: "GET" })
   });
 
 export const getCurrentRound = createServerFn({ method: "GET" })
-  .inputValidator((d: { roundId?: string | null }) => z.object({ roundId: z.string().uuid().nullable().optional() }).parse(d))
+  .inputValidator((d?: { roundId?: string | null }) =>
+    z.object({ roundId: z.string().uuid().nullable().optional() }).parse(d ?? {}),
+  )
   .handler(async ({ data }) => {
     const { publicClient } = await import("./palpite.server");
     const supabase = publicClient();
