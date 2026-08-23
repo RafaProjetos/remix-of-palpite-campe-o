@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { getCurrentRound, getMyBet, getMyStatus, getRounds, startPayment } from "@/lib/palpite.functions";
+import { getCurrentRound, getMyBet, getMyStatus, getRounds, startPayment, syncPaymentStatus } from "@/lib/palpite.functions";
 import { SiteHeader } from "@/components/site-header";
 import { TeamBadge } from "@/components/team-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,9 +28,11 @@ function MeusPalpites() {
   const carregarStatus = useServerFn(getMyStatus);
   const carregarListaRodadas = useServerFn(getRounds);
   const dispararPagamento = useServerFn(startPayment);
+  const sincronizarPagamento = useServerFn(syncPaymentStatus);
 
   const [selectedRoundId, setSelectedRoundId] = useState<string>("");
   const [isPaying, setIsPaying] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const listaRodadas = useQuery({ queryKey: ["lista-rodadas"], queryFn: () => carregarListaRodadas({}) });
   const rodada = useQuery({ 
@@ -89,6 +91,23 @@ function MeusPalpites() {
     } catch (error: any) {
       toast.error(error.message || "Erro ao iniciar pagamento");
       setIsPaying(false);
+    }
+  };
+  
+  const handleSyncStatus = async () => {
+    if (!aposta.data?.bet?.id) return;
+    
+    setIsSyncing(true);
+    try {
+      const res = await sincronizarPagamento({
+        data: { betId: aposta.data.bet.id },
+      });
+      toast.success(res.message);
+      aposta.refetch();
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao sincronizar status");
+    } finally {
+      setIsSyncing(false);
     }
   };
   
@@ -252,9 +271,19 @@ function MeusPalpites() {
               </div>
             ) : isPending ? (
               <div className="flex flex-col gap-4 rounded-lg border border-amber-500/20 bg-amber-500/5 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-3 text-sm font-semibold text-amber-700 dark:text-amber-400">
-                  <AlertCircle className="h-5 w-5 shrink-0" />
-                  <span>Pagamento Pendente: Seu palpite ainda não vale para a premiação.</span>
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-3 text-sm font-semibold text-amber-700 dark:text-amber-400">
+                    <AlertCircle className="h-5 w-5 shrink-0" />
+                    <span>Pagamento Pendente: Seu palpite ainda não vale para a premiação.</span>
+                  </div>
+                  <button 
+                    onClick={handleSyncStatus}
+                    disabled={isSyncing}
+                    className="ml-8 text-xs font-bold text-amber-600 hover:text-amber-700 underline flex items-center gap-1 disabled:opacity-50"
+                  >
+                    {isSyncing && <Loader2 className="h-3 w-3 animate-spin" />}
+                    Já pagou? Sincronizar status agora
+                  </button>
                 </div>
                 <Button 
                   onClick={handleFinishPayment} 

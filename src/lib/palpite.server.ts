@@ -185,3 +185,13 @@ export async function getMercadoPagoPayment(paymentId: string): Promise<any> {
   if (!res.ok) throw new Error(`Mercado Pago [${res.status}]: ${JSON.stringify(json)}`);
   return json;
 }
+
+export async function getMercadoPagoPaymentByPreference(preferenceId: string): Promise<any> {
+  const res = await fetch(`https://api.mercadopago.com/v1/payments/search?preference_id=${preferenceId}`, {
+    headers: { Authorization: `Bearer ${mpToken()}` },
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(`Mercado Pago [${res.status}]: ${JSON.stringify(json)}`);
+  // O search retorna uma lista de pagamentos associados à preferência
+  return json.results?.[0] || null;
+}
