@@ -157,9 +157,24 @@ function MeusPalpites() {
       <main className="mx-auto max-w-3xl space-y-6 px-4 py-10">
         <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 bg-card p-6 rounded-xl border border-border/50 shadow-sm">
           <div className="space-y-3">
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Meus Palpites</h1>
-              {betLeague && (
+              {(apostasRodada.length > 0 ? apostasRodada : []).map((b: any) => {
+                const tipo = b.leagues?.type as keyof typeof leagueColors;
+                const ativo = b.league_id === selectedLeagueId;
+                return (
+                  <button
+                    key={b.id}
+                    type="button"
+                    onClick={() => setSelectedLeagueId(b.league_id)}
+                    aria-pressed={ativo}
+                    className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold capitalize transition-all sm:text-xs ${leagueColors[tipo] || leagueColors.free} ${ativo ? "ring-2 ring-primary ring-offset-1 ring-offset-background" : "opacity-60 hover:opacity-100"}`}
+                  >
+                    {leagueLabels[tipo] || b.leagues?.name}
+                  </button>
+                );
+              })}
+              {apostasRodada.length === 0 && betLeague && (
                 <Badge 
                   variant="outline" 
                   className={`capitalize font-bold px-2 py-0.5 text-[10px] sm:text-xs ${leagueColors[betLeague.type as keyof typeof leagueColors] || leagueColors.free}`}
@@ -168,6 +183,7 @@ function MeusPalpites() {
                 </Badge>
               )}
             </div>
+
             
             <div className="flex flex-col gap-2">
               <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Histórico de Rodadas</span>
