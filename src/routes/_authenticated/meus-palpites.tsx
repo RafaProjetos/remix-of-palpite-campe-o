@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { getCurrentRound, getMyBet, getMyStatus, getRounds, startPayment, syncPaymentStatus } from "@/lib/palpite.functions";
+import { getCurrentRound, getMyBet, getMyBetsForRound, getMyStatus, getRounds, startPayment, syncPaymentStatus } from "@/lib/palpite.functions";
 import { SiteHeader } from "@/components/site-header";
 import { TeamBadge } from "@/components/team-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,7 +30,10 @@ function MeusPalpites() {
   const dispararPagamento = useServerFn(startPayment);
   const sincronizarPagamento = useServerFn(syncPaymentStatus);
 
+  const carregarMinhasApostas = useServerFn(getMyBetsForRound);
+
   const [selectedRoundId, setSelectedRoundId] = useState<string>("");
+  const [selectedLeagueId, setSelectedLeagueId] = useState<string>("");
   const [isPaying, setIsPaying] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
@@ -50,9 +53,27 @@ function MeusPalpites() {
 
   const roundId = rodada.data?.round?.id as string | undefined;
 
+  const minhasApostas = useQuery({
+    queryKey: ["minhas-apostas", roundId],
+    queryFn: () => carregarMinhasApostas({ data: { roundId: roundId! } }),
+    enabled: Boolean(roundId),
+  });
+
+  const apostasRodada = (minhasApostas.data ?? []) as any[];
+
+  useEffect(() => {
+    if (!apostasRodada.length) {
+      setSelectedLeagueId("");
+      return;
+    }
+    if (!apostasRodada.some((b) => b.league_id === selectedLeagueId)) {
+      setSelectedLeagueId(apostasRodada[0].league_id);
+    }
+  }, [minhasApostas.data]);
+
   const aposta = useQuery({
-    queryKey: ["minha-aposta", roundId],
-    queryFn: () => carregarAposta({ data: { roundId: roundId! } }),
+    queryKey: ["minha-aposta", roundId, selectedLeagueId],
+    queryFn: () => carregarAposta({ data: { roundId: roundId!, leagueId: selectedLeagueId || undefined } }),
     enabled: Boolean(roundId),
   });
 
