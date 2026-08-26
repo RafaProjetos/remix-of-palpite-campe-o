@@ -4,7 +4,7 @@ import { getCurrentRound, getRankings, getLeagues } from "@/lib/palpite.function
 import { SiteHeader } from "@/components/site-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trophy, Users, Clock } from "lucide-react";
+import { AlertCircle, Trophy, Users, Clock } from "lucide-react";
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -19,15 +19,21 @@ export const Route = createFileRoute("/ranking")({
       },
       { property: "og:title", content: "Ranking — Palpite da Rodada" },
       { property: "og:description", content: "Ranking da rodada e ranking geral acumulado do bolão." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
-  loader: () => getCurrentRound({ data: {} }),
   component: RankingPage,
 });
 
 function RankingPage() {
-  const { round } = Route.useLoaderData();
   const [activeLeagueType, setActiveLeagueType] = useState<string>("free");
+  const currentRoundQuery = useQuery({
+    queryKey: ["current-round", "ranking"],
+    queryFn: () => getCurrentRound({ data: {} }),
+    retry: 2,
+  });
+  const round = currentRoundQuery.data?.round;
   
   const leaguesQuery = useQuery({
     queryKey: ["leagues"],
@@ -37,6 +43,8 @@ function RankingPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["rankings", round?.id, activeLeagueType],
     queryFn: () => getRankings({ data: { roundId: round?.id ?? null, leagueType: activeLeagueType } }),
+    enabled: currentRoundQuery.isSuccess,
+    retry: 2,
     refetchInterval: 30_000,
   });
 
@@ -52,6 +60,13 @@ function RankingPage() {
             Transparência total nos resultados e critérios de desempate automáticos.
           </p>
         </header>
+
+        {currentRoundQuery.isError && (
+          <div className="flex items-center gap-3 border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive" role="alert">
+            <AlertCircle className="h-5 w-5 shrink-0" />
+            <span>Não foi possível carregar a rodada agora. Tente novamente em instantes.</span>
+          </div>
+        )}
 
         <Tabs defaultValue="free" className="w-full" onValueChange={setActiveLeagueType}>
           <TabsList className="grid w-full grid-cols-4 h-12 mb-8">
