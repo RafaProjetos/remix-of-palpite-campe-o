@@ -70,10 +70,7 @@ export const Route = createFileRoute('/api/public/get-fixtures')({
           const apiKey = process.env['API_FOOTBALL_KEY'] || process.env['FOOTBALL_API_KEY'];
 
           if (!apiKey) {
-            return new Response(JSON.stringify({ error: 'FOOTBALL_API_KEY not configured' }), {
-              status: 500,
-              headers: jsonHeaders,
-            });
+            throw new Error('API_FOOTBALL_KEY não configurada');
           }
 
           // A chave pode ser do painel direto (api-sports.io) ou do RapidAPI.
@@ -179,7 +176,7 @@ export const Route = createFileRoute('/api/public/get-fixtures')({
               'Cache-Control': 'public, max-age=60',
             },
           });
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error('Error fetching fixtures:', error);
 
           // 4) API externa indisponível: serve o último cache conhecido (mesmo vencido)
@@ -194,9 +191,78 @@ export const Route = createFileRoute('/api/public/get-fixtures')({
             });
           }
 
-          return new Response(JSON.stringify({ error: error.message }), {
-            status: 500,
-            headers: jsonHeaders,
+          // Sem cache e com o provedor indisponível, usa a rodada já publicada
+          // no banco. Assim uma falha externa nunca derruba a tela de palpites.
+          let roundQuery = supabaseAdmin.from('rounds').select('*');
+          const parsedRoundNumber = roundParam?.match(/(\d+)$/)?.[1];
+          if (parsedRoundNumber) {
+            roundQuery = roundQuery.eq('number', Number(parsedRoundNumber));
+          } else {
+            roundQuery = roundQuery.order('created_at', { ascending: false }).limit(1);
+          }
+
+          const { data: databaseRound, error: roundError } = await roundQuery.maybeSingle();
+          if (roundError) {
+            console.error('Erro ao buscar rodada de fallback:', roundError);
+          }
+
+          if (databaseRound) {
+            const { data: databaseMatches, error: matchesError } = await supabaseAdmin
+              .from('matches')
+              .select('*')
+              .eq('round_id', databaseRound.id)
+              .order('position');
+
+            if (matchesError) {
+              console.error('Erro ao buscar jogos de fallback:', matchesError);
+            }
+
+            const fixtures = (databaseMatches ?? []).map((match) => ({
+              id: match.id,
+              date: match.kickoff_at,
+              timestamp: match.kickoff_at
+                ? Math.floor(new Date(match.kickoff_at).getTime() / 1000)
+                : null,
+              venue: null,
+              status: databaseRound.status,
+              league: {
+                name: 'Brasileirão Série A',
+                round: databaseRound.title || `Rodada ${databaseRound.number}`,
+              },
+              homeTeam: {
+                id: null,
+                name: match.home_team,
+                logo: match.home_logo,
+              },
+              awayTeam: {
+                id: null,
+                name: match.away_team,
+                logo: match.away_logo,
+              },
+            }));
+
+            return new Response(
+              JSON.stringify({
+                round: databaseRound.title || `Rodada ${databaseRound.number}`,
+                fixtures,
+              }),
+              {
+                headers: {
+                  ...jsonHeaders,
+                  'X-Cache': 'DATABASE-FALLBACK',
+                  'Cache-Control': 'public, max-age=60',
+                },
+              },
+            );
+          }
+
+          const message = error instanceof Error ? error.message : 'Falha ao buscar os jogos';
+          return new Response(JSON.stringify({ round: null, fixtures: [], warning: message }), {
+            headers: {
+              ...jsonHeaders,
+              'X-Cache': 'EMPTY-FALLBACK',
+              'Cache-Control': 'public, max-age=60',
+            },
           });
         }
       },
