@@ -73,7 +73,7 @@ function MeusPalpites() {
 
   const aposta = useQuery({
     queryKey: ["minha-aposta", roundId, selectedLeagueId],
-    queryFn: () => carregarAposta({ data: { roundId: roundId!, leagueId: selectedLeagueId || undefined } }),
+    queryFn: () => carregarAposta({ data: selectedLeagueId ? { roundId: roundId!, leagueId: selectedLeagueId } : { roundId: roundId! } }),
     enabled: Boolean(roundId),
   });
 
