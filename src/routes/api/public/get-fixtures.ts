@@ -23,6 +23,30 @@ export const Route = createFileRoute('/api/public/get-fixtures')({
   server: {
     handlers: {
       GET: async ({ request }) => {
+        try {
+          return await handleFixturesRequest(request);
+        } catch (error: unknown) {
+          console.error('Falha inesperada na rota de fixtures:', error);
+          return Response.json(
+            {
+              round: null,
+              fixtures: [],
+              warning: 'Os jogos estão temporariamente indisponíveis.',
+            },
+            {
+              headers: {
+                'X-Cache': 'SAFE-FALLBACK',
+                'Cache-Control': 'no-store',
+              },
+            },
+          );
+        }
+      },
+    },
+  },
+});
+
+async function handleFixturesRequest(request: Request) {
         const jsonHeaders = { 'Content-Type': 'application/json' };
 
         // Dia da semana em America/Sao_Paulo define o tempo de vida do cache
@@ -265,7 +289,4 @@ export const Route = createFileRoute('/api/public/get-fixtures')({
             },
           });
         }
-      },
-    },
-  },
-});
+}
