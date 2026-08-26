@@ -190,10 +190,23 @@ export const getMyBet = createServerFn({ method: "GET" })
       query = query.eq("league_id", data.leagueId);
     }
     
-    const bet = await query.maybeSingle();
+    const bets = await query.order("created_at", { ascending: true });
+    const bet = { data: bets.data?.[0] ?? null };
     if (!bet.data) return { bet: null, picks: [] as any[] };
     const picks = await context.supabase.from("bet_picks").select("*").eq("bet_id", bet.data.id);
     return { bet: bet.data, picks: picks.data ?? [] };
+  });
+
+export const getMyBetsForRound = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { roundId: string }) => z.object({ roundId: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    const res = await context.supabase
+      .from("bets")
+      .select("id, league_id, status, total_points, leagues(*)")
+      .eq("round_id", data.roundId)
+      .eq("user_id", context.userId);
+    return res.data ?? [];
   });
 
 export const saveBet = createServerFn({ method: "POST" })
