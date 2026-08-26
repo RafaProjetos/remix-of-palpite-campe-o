@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { getCurrentRound, getMyBet, getMyStatus, getRounds, startPayment, syncPaymentStatus } from "@/lib/palpite.functions";
+import { getCurrentRound, getMyBet, getMyBetsForRound, getMyStatus, getRounds, startPayment, syncPaymentStatus } from "@/lib/palpite.functions";
 import { SiteHeader } from "@/components/site-header";
 import { TeamBadge } from "@/components/team-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,7 +30,10 @@ function MeusPalpites() {
   const dispararPagamento = useServerFn(startPayment);
   const sincronizarPagamento = useServerFn(syncPaymentStatus);
 
+  const carregarMinhasApostas = useServerFn(getMyBetsForRound);
+
   const [selectedRoundId, setSelectedRoundId] = useState<string>("");
+  const [selectedLeagueId, setSelectedLeagueId] = useState<string>("");
   const [isPaying, setIsPaying] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
@@ -50,9 +53,27 @@ function MeusPalpites() {
 
   const roundId = rodada.data?.round?.id as string | undefined;
 
+  const minhasApostas = useQuery({
+    queryKey: ["minhas-apostas", roundId],
+    queryFn: () => carregarMinhasApostas({ data: { roundId: roundId! } }),
+    enabled: Boolean(roundId),
+  });
+
+  const apostasRodada = (minhasApostas.data ?? []) as any[];
+
+  useEffect(() => {
+    if (!apostasRodada.length) {
+      setSelectedLeagueId("");
+      return;
+    }
+    if (!apostasRodada.some((b) => b.league_id === selectedLeagueId)) {
+      setSelectedLeagueId(apostasRodada[0].league_id);
+    }
+  }, [minhasApostas.data]);
+
   const aposta = useQuery({
-    queryKey: ["minha-aposta", roundId],
-    queryFn: () => carregarAposta({ data: { roundId: roundId! } }),
+    queryKey: ["minha-aposta", roundId, selectedLeagueId],
+    queryFn: () => carregarAposta({ data: selectedLeagueId ? { roundId: roundId!, leagueId: selectedLeagueId } : { roundId: roundId! } }),
     enabled: Boolean(roundId),
   });
 
@@ -136,9 +157,24 @@ function MeusPalpites() {
       <main className="mx-auto max-w-3xl space-y-6 px-4 py-10">
         <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 bg-card p-6 rounded-xl border border-border/50 shadow-sm">
           <div className="space-y-3">
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Meus Palpites</h1>
-              {betLeague && (
+              {(apostasRodada.length > 0 ? apostasRodada : []).map((b: any) => {
+                const tipo = b.leagues?.type as keyof typeof leagueColors;
+                const ativo = b.league_id === selectedLeagueId;
+                return (
+                  <button
+                    key={b.id}
+                    type="button"
+                    onClick={() => setSelectedLeagueId(b.league_id)}
+                    aria-pressed={ativo}
+                    className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold capitalize transition-all sm:text-xs ${leagueColors[tipo] || leagueColors.free} ${ativo ? "ring-2 ring-primary ring-offset-1 ring-offset-background" : "opacity-60 hover:opacity-100"}`}
+                  >
+                    {leagueLabels[tipo] || b.leagues?.name}
+                  </button>
+                );
+              })}
+              {apostasRodada.length === 0 && betLeague && (
                 <Badge 
                   variant="outline" 
                   className={`capitalize font-bold px-2 py-0.5 text-[10px] sm:text-xs ${leagueColors[betLeague.type as keyof typeof leagueColors] || leagueColors.free}`}
@@ -147,6 +183,7 @@ function MeusPalpites() {
                 </Badge>
               )}
             </div>
+
             
             <div className="flex flex-col gap-2">
               <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Histórico de Rodadas</span>
@@ -174,7 +211,7 @@ function MeusPalpites() {
             )}
             <Badge variant={isClosed ? "secondary" : "default"} className="h-fit">
               {isClosed 
-                ? (round?.status === "finished" || round?.status === "closed" ? "Rodada encerrada" : "Rodada em andamento") 
+                ? (round?.status === "validated" ? "Rodada encerrada" : "Rodada em andamento") 
                 : "Rodada Aberta"}
             </Badge>
           </div>
