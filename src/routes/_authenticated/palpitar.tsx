@@ -189,8 +189,8 @@ function Palpitar() {
           <Card className="border-destructive/50 bg-destructive/10">
             <CardContent className="py-6 text-center">
               <p className="font-bold text-destructive sm:text-lg">
-                { (rodada.data?.round?.status === "finished" || rodada.data?.round?.status === "closed") 
-                  ? "Esta rodada já foi encerrada."
+                { rodada.data?.round?.status === "validated"
+                  ? "Rodada encerrada."
                   : "Rodada em andamento. Fechada para novos palpites." }
               </p>
               <Button asChild className="mt-4" variant="outline">
@@ -304,8 +304,8 @@ function Palpitar() {
                       : activeLeagueType === 'free' 
                         ? "Gratuito" 
                         : isClosed 
-                          ? (rodada.data?.round?.status === "finished" || rodada.data?.round?.status === "closed" 
-                              ? "Rodada Encerrada" 
+                          ? (rodada.data?.round?.status === "validated"
+                              ? "Rodada encerrada" 
                               : "Rodada em andamento")
                           : "Pendente"}
                   </Badge>
