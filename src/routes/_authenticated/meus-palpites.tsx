@@ -211,7 +211,7 @@ function MeusPalpites() {
             )}
             <Badge variant={isClosed ? "secondary" : "default"} className="h-fit">
               {isClosed 
-                ? (round?.status === "finished" || round?.status === "closed" ? "Rodada encerrada" : "Rodada em andamento") 
+                ? (round?.status === "validated" ? "Rodada encerrada" : "Rodada em andamento") 
                 : "Rodada Aberta"}
             </Badge>
           </div>
