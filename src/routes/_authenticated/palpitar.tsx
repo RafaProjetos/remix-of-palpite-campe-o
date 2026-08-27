@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { getCurrentRound, getMyBet, getMyStatus, saveBet, startPayment, getLeagues, getLeagueStats, deleteBet } from "@/lib/palpite.functions";
+import { getCurrentRound, getMyBet, getMyStatus, saveBet, startPayment, getLeagues, getLeagueStats } from "@/lib/palpite.functions";
 import { useNavigate } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
 import { TeamBadge } from "@/components/team-badge";
@@ -37,7 +37,6 @@ function Palpitar() {
   const carregarLeagueStats = useServerFn(getLeagueStats);
   const salvar = useServerFn(saveBet);
   const pagar = useServerFn(startPayment);
-  const excluirPalpite = useServerFn(deleteBet);
 
   const [placares, setPlacares] = useState<Record<string, Placar>>({});
   const [enviando, setEnviando] = useState(false);
