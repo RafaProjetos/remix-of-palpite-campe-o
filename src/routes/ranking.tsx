@@ -128,15 +128,24 @@ function RankingPage() {
                         <TableRow>
                           <TableCell colSpan={6} className="text-center py-10">Carregando ranking...</TableCell>
                         </TableRow>
-                      ) : (data?.round ?? []).length === 0 ? (
+                      ) : roundRows.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
                             Nenhum participante nesta liga ainda.
                           </TableCell>
                         </TableRow>
                       ) : (
-                        (data?.round ?? []).map((r: any) => (
-                          <TableRow key={r.user_id} className={r.row_position <= 10 && activeLeagueType !== 'free' ? "bg-yellow-500/5" : ""}>
+                        [...topRows, ...(myRowOutsideTop ? [myRowOutsideTop] : [])].map((r: any) => (
+                          <TableRow
+                            key={r.user_id}
+                            className={
+                              r.user_id === myUserId
+                                ? "bg-primary/10 ring-1 ring-primary/30"
+                                : r.row_position <= 10 && activeLeagueType !== "free"
+                                  ? "bg-yellow-500/5"
+                                  : ""
+                            }
+                          >
                             <TableCell className="text-center font-bold">
                               <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-[10px] ${
                                 r.row_position === 1 ? "bg-yellow-500 text-yellow-950" : 
