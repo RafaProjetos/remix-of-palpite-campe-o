@@ -379,22 +379,14 @@ function Palpitar() {
 
                 <div className="pt-6 space-y-3">
                   {!pago && !isClosed && (
-                    <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div className="mb-3">
                       <Button 
                         variant="outline" 
-                        className="text-muted-foreground border-dashed"
+                        className="w-full text-muted-foreground border-dashed"
                         onClick={handleLimpar}
                         disabled={enviando}
                       >
                         Limpar Tudo
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        className="text-destructive hover:bg-destructive/10"
-                        onClick={handleCancelar}
-                        disabled={enviando || !aposta.data?.bet}
-                      >
-                        Cancelar Palpite
                       </Button>
                     </div>
                   )}
