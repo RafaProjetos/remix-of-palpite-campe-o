@@ -28,6 +28,15 @@ export const Route = createFileRoute("/ranking")({
 
 function RankingPage() {
   const [activeLeagueType, setActiveLeagueType] = useState<string>("free");
+  const meQuery = useQuery({
+    queryKey: ["me-ranking"],
+    queryFn: async () => {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data } = await supabase.auth.getUser();
+      return data.user?.id ?? null;
+    },
+  });
+  const myUserId = meQuery.data ?? null;
   const currentRoundQuery = useQuery({
     queryKey: ["current-round", "ranking"],
     queryFn: () => getCurrentRound({ data: {} }),
