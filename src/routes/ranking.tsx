@@ -157,7 +157,12 @@ function RankingPage() {
                             </TableCell>
                             <TableCell>
                               <div className="flex flex-col min-w-0">
-                                <span className="font-medium truncate text-xs sm:text-sm">{r.display_name || "Participante"}</span>
+                                <span className="font-medium truncate text-xs sm:text-sm">
+                                  {nomeDe(r)}
+                                  {r.user_id === myUserId && (
+                                    <span className="ml-2 text-[9px] uppercase font-bold text-primary">Você</span>
+                                  )}
+                                </span>
                                 {r.row_position <= 10 && activeLeagueType !== 'free' && (
                                   <span className="text-[8px] sm:text-[10px] text-yellow-600 font-bold uppercase tracking-tighter">Zona de Premiação</span>
                                 )}
