@@ -28,6 +28,15 @@ export const Route = createFileRoute("/ranking")({
 
 function RankingPage() {
   const [activeLeagueType, setActiveLeagueType] = useState<string>("free");
+  const meQuery = useQuery({
+    queryKey: ["me-ranking"],
+    queryFn: async () => {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data } = await supabase.auth.getUser();
+      return data.user?.id ?? null;
+    },
+  });
+  const myUserId = meQuery.data ?? null;
   const currentRoundQuery = useQuery({
     queryKey: ["current-round", "ranking"],
     queryFn: () => getCurrentRound({ data: {} }),
@@ -49,6 +58,13 @@ function RankingPage() {
   });
 
   const activeLeague = leaguesQuery.data?.find(l => l.type === activeLeagueType);
+
+  const roundRows: any[] = data?.round ?? [];
+  const topRows = roundRows.slice(0, 10);
+  const myRow = myUserId ? roundRows.find((r: any) => r.user_id === myUserId) : null;
+  const myRowOutsideTop = myRow && !topRows.some((r: any) => r.user_id === myUserId) ? myRow : null;
+  const nomeDe = (r: any) => r.full_name || r.display_name || "Participante";
+
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -112,15 +128,24 @@ function RankingPage() {
                         <TableRow>
                           <TableCell colSpan={6} className="text-center py-10">Carregando ranking...</TableCell>
                         </TableRow>
-                      ) : (data?.round ?? []).length === 0 ? (
+                      ) : roundRows.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
                             Nenhum participante nesta liga ainda.
                           </TableCell>
                         </TableRow>
                       ) : (
-                        (data?.round ?? []).map((r: any) => (
-                          <TableRow key={r.user_id} className={r.row_position <= 10 && activeLeagueType !== 'free' ? "bg-yellow-500/5" : ""}>
+                        [...topRows, ...(myRowOutsideTop ? [myRowOutsideTop] : [])].map((r: any) => (
+                          <TableRow
+                            key={r.user_id}
+                            className={
+                              r.user_id === myUserId
+                                ? "bg-primary/10 ring-1 ring-primary/30"
+                                : r.row_position <= 10 && activeLeagueType !== "free"
+                                  ? "bg-yellow-500/5"
+                                  : ""
+                            }
+                          >
                             <TableCell className="text-center font-bold">
                               <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-[10px] ${
                                 r.row_position === 1 ? "bg-yellow-500 text-yellow-950" : 
@@ -132,7 +157,12 @@ function RankingPage() {
                             </TableCell>
                             <TableCell>
                               <div className="flex flex-col min-w-0">
-                                <span className="font-medium truncate text-xs sm:text-sm">{r.display_name || "Participante"}</span>
+                                <span className="font-medium truncate text-xs sm:text-sm">
+                                  {nomeDe(r)}
+                                  {r.user_id === myUserId && (
+                                    <span className="ml-2 text-[9px] uppercase font-bold text-primary">Você</span>
+                                  )}
+                                </span>
                                 {r.row_position <= 10 && activeLeagueType !== 'free' && (
                                   <span className="text-[8px] sm:text-[10px] text-yellow-600 font-bold uppercase tracking-tighter">Zona de Premiação</span>
                                 )}
@@ -182,7 +212,7 @@ function RankingPage() {
                       (data?.general ?? []).map((r: any, i: number) => (
                         <TableRow key={r.user_id}>
                           <TableCell className="text-center font-medium">{i + 1}</TableCell>
-                          <TableCell>{r.display_name}</TableCell>
+                          <TableCell>{nomeDe(r)}</TableCell>
                           <TableCell className="text-right font-bold">{r.total_points} pts</TableCell>
                         </TableRow>
                       ))

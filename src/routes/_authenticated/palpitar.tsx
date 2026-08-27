@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { getCurrentRound, getMyBet, getMyStatus, saveBet, startPayment, getLeagues, getLeagueStats, deleteBet } from "@/lib/palpite.functions";
+import { getCurrentRound, getMyBet, getMyStatus, saveBet, startPayment, getLeagues, getLeagueStats } from "@/lib/palpite.functions";
 import { useNavigate } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
 import { TeamBadge } from "@/components/team-badge";
@@ -37,7 +37,6 @@ function Palpitar() {
   const carregarLeagueStats = useServerFn(getLeagueStats);
   const salvar = useServerFn(saveBet);
   const pagar = useServerFn(startPayment);
-  const excluirPalpite = useServerFn(deleteBet);
 
   const [placares, setPlacares] = useState<Record<string, Placar>>({});
   const [enviando, setEnviando] = useState(false);
@@ -138,22 +137,6 @@ function Palpitar() {
     }
   }
 
-  async function handleCancelar() {
-    if (!aposta.data?.bet?.id) return;
-    if (!confirm("Tem certeza que deseja cancelar seu palpite?")) return;
-    
-    setEnviando(true);
-    try {
-      await excluirPalpite({ data: { betId: aposta.data.bet.id } });
-      toast.success("Palpite cancelado com sucesso.");
-      setPlacares({});
-      await aposta.refetch();
-    } catch (e: any) {
-      toast.error(e?.message ?? "Erro ao cancelar.");
-    } finally {
-      setEnviando(false);
-    }
-  }
 
   function handleLimpar() {
     if (!confirm("Deseja limpar todos os placares preenchidos?")) return;
@@ -379,22 +362,14 @@ function Palpitar() {
 
                 <div className="pt-6 space-y-3">
                   {!pago && !isClosed && (
-                    <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div className="mb-3">
                       <Button 
                         variant="outline" 
-                        className="text-muted-foreground border-dashed"
+                        className="w-full text-muted-foreground border-dashed"
                         onClick={handleLimpar}
                         disabled={enviando}
                       >
                         Limpar Tudo
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        className="text-destructive hover:bg-destructive/10"
-                        onClick={handleCancelar}
-                        disabled={enviando || !aposta.data?.bet}
-                      >
-                        Cancelar Palpite
                       </Button>
                     </div>
                   )}
