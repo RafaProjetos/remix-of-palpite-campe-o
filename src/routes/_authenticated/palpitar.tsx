@@ -138,22 +138,6 @@ function Palpitar() {
     }
   }
 
-  async function handleCancelar() {
-    if (!aposta.data?.bet?.id) return;
-    if (!confirm("Tem certeza que deseja cancelar seu palpite?")) return;
-    
-    setEnviando(true);
-    try {
-      await excluirPalpite({ data: { betId: aposta.data.bet.id } });
-      toast.success("Palpite cancelado com sucesso.");
-      setPlacares({});
-      await aposta.refetch();
-    } catch (e: any) {
-      toast.error(e?.message ?? "Erro ao cancelar.");
-    } finally {
-      setEnviando(false);
-    }
-  }
 
   function handleLimpar() {
     if (!confirm("Deseja limpar todos os placares preenchidos?")) return;
