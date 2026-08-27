@@ -59,6 +59,13 @@ function RankingPage() {
 
   const activeLeague = leaguesQuery.data?.find(l => l.type === activeLeagueType);
 
+  const roundRows: any[] = data?.round ?? [];
+  const topRows = roundRows.slice(0, 10);
+  const myRow = myUserId ? roundRows.find((r: any) => r.user_id === myUserId) : null;
+  const myRowOutsideTop = myRow && !topRows.some((r: any) => r.user_id === myUserId) ? myRow : null;
+  const nomeDe = (r: any) => r.full_name || r.display_name || "Participante";
+
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
