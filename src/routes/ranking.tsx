@@ -212,7 +212,7 @@ function RankingPage() {
                       (data?.general ?? []).map((r: any, i: number) => (
                         <TableRow key={r.user_id}>
                           <TableCell className="text-center font-medium">{i + 1}</TableCell>
-                          <TableCell>{r.display_name}</TableCell>
+                          <TableCell>{nomeDe(r)}</TableCell>
                           <TableCell className="text-right font-bold">{r.total_points} pts</TableCell>
                         </TableRow>
                       ))
