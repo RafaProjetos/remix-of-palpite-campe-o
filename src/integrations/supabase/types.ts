@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.15"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
@@ -371,6 +371,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin_self: { Args: never; Returns: boolean }
+      is_free_league: { Args: { _league_id: string }; Returns: boolean }
       league_stats: {
         Args: {
           _league_type: Database["public"]["Enums"]["league_type"]
