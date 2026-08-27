@@ -371,6 +371,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin_self: { Args: never; Returns: boolean }
+      is_free_league: { Args: { _league_id: string }; Returns: boolean }
       league_stats: {
         Args: {
           _league_type: Database["public"]["Enums"]["league_type"]
