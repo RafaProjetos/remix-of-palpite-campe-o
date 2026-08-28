@@ -21,6 +21,8 @@ import {
     adminEndSeason,
     adminReopenRound,
     adminDeleteUser,
+    adminRemoveParticipantFromRound,
+    adminRemoveParticipantFromRanking,
    } from "@/lib/admin.functions";
 import { SERIE_A_TEAMS } from "@/lib/constants";
 import { SiteHeader } from "@/components/site-header";
@@ -39,7 +41,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Download, Trash2 } from "lucide-react";
+import { Download, Trash2, UserMinus, ListX } from "lucide-react";
 
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -74,6 +76,8 @@ function Admin() {
   const encerrarTemporadaFn = useServerFn(adminEndSeason);
   const reabrirRodadaFn = useServerFn(adminReopenRound);
   const excluirUsuarioFn = useServerFn(adminDeleteUser);
+  const removerDaRodadaFn = useServerFn(adminRemoveParticipantFromRound);
+  const removerDoRankingFn = useServerFn(adminRemoveParticipantFromRanking);
 
   const [activeLeagueType, setActiveLeagueType] = useState<string>("free");
 
@@ -201,6 +205,34 @@ function Admin() {
       await overview.refetch();
     } catch (e: any) {
       toast.error(e?.message || "Erro ao excluir usuário.");
+    } finally {
+      setOcupado(false);
+    }
+  }
+
+  async function removerDaRodada(betId: string, nome: string) {
+    if (!confirm(`Remover "${nome}" desta rodada? A pontuação e os palpites da rodada serão apagados, mas o cadastro do usuário será mantido.`)) return;
+    setOcupado(true);
+    try {
+      await removerDaRodadaFn({ data: { betId } });
+      toast.success("Participante removido da rodada.");
+      await overview.refetch();
+    } catch (e: any) {
+      toast.error(e?.message || "Erro ao remover da rodada.");
+    } finally {
+      setOcupado(false);
+    }
+  }
+
+  async function removerDoRanking(userId: string, nome: string) {
+    if (!confirm(`Remover "${nome}" do ranking? Todas as pontuações e palpites de todas as rodadas serão apagados, mas o cadastro do usuário será mantido.`)) return;
+    setOcupado(true);
+    try {
+      await removerDoRankingFn({ data: { userId } });
+      toast.success("Participante removido do ranking.");
+      await overview.refetch();
+    } catch (e: any) {
+      toast.error(e?.message || "Erro ao remover do ranking.");
     } finally {
       setOcupado(false);
     }
@@ -587,9 +619,35 @@ function Admin() {
                     e.stopPropagation();
                     excluirUsuario(p.user_id, p.full_name);
                   }}
-                  title="Excluir usuário"
+                  title="Excluir usuário (apaga o cadastro)"
                 >
                   <Trash2 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-amber-600 hover:bg-amber-500/10 hover:text-amber-600"
+                  disabled={ocupado}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removerDaRodada(p.id, p.full_name);
+                  }}
+                  title="Apagar participação nesta rodada (mantém o cadastro)"
+                >
+                  <UserMinus className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-orange-600 hover:bg-orange-500/10 hover:text-orange-600"
+                  disabled={ocupado}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removerDoRanking(p.user_id, p.full_name);
+                  }}
+                  title="Apagar do ranking geral (mantém o cadastro)"
+                >
+                  <ListX className="h-4 w-4" />
                 </Button>
               </div>
             ))}
