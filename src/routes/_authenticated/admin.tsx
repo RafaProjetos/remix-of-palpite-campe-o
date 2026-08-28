@@ -210,12 +210,18 @@ function Admin() {
     }
   }
 
-  async function removerDaRodada(betId: string, nome: string) {
-    if (!confirm(`Remover "${nome}" desta rodada? A pontuação e os palpites da rodada serão apagados, mas o cadastro do usuário será mantido.`)) return;
+  async function removerDaRodada(betId: string, nome: string, undo = false) {
+    if (
+      !undo &&
+      !confirm(
+        `Remover "${nome}" desta rodada? Ele deixa de contar nesta rodada, mas o ranking geral e o cadastro são mantidos. É possível desfazer.`,
+      )
+    )
+      return;
     setOcupado(true);
     try {
-      await removerDaRodadaFn({ data: { betId } });
-      toast.success("Participante removido da rodada.");
+      await removerDaRodadaFn({ data: { betId, undo } });
+      toast.success(undo ? "Remoção da rodada desfeita." : "Participante removido da rodada.");
       await overview.refetch();
     } catch (e: any) {
       toast.error(e?.message || "Erro ao remover da rodada.");
@@ -224,12 +230,18 @@ function Admin() {
     }
   }
 
-  async function removerDoRanking(userId: string, nome: string) {
-    if (!confirm(`Remover "${nome}" do ranking? Todas as pontuações e palpites de todas as rodadas serão apagados, mas o cadastro do usuário será mantido.`)) return;
+  async function removerDoRanking(userId: string, nome: string, undo = false) {
+    if (
+      !undo &&
+      !confirm(
+        `Remover "${nome}" do ranking geral? A participação na rodada atual é mantida e o cadastro também. É possível desfazer.`,
+      )
+    )
+      return;
     setOcupado(true);
     try {
-      await removerDoRankingFn({ data: { userId } });
-      toast.success("Participante removido do ranking.");
+      await removerDoRankingFn({ data: { userId, keepRoundId: roundId ?? undefined, undo } });
+      toast.success(undo ? "Remoção do ranking desfeita." : "Participante removido do ranking geral.");
       await overview.refetch();
     } catch (e: any) {
       toast.error(e?.message || "Erro ao remover do ranking.");
@@ -237,6 +249,7 @@ function Admin() {
       setOcupado(false);
     }
   }
+
 
   return (
     <div className="min-h-screen bg-background">

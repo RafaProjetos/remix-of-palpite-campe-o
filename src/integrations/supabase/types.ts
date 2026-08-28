@@ -78,6 +78,9 @@ export type Database = {
         Row: {
           amount: number
           created_at: string
+          excluded_at: string | null
+          excluded_from_ranking: boolean
+          excluded_from_round: boolean
           full_hits: number | null
           id: string
           league_id: string
@@ -92,6 +95,9 @@ export type Database = {
         Insert: {
           amount?: number
           created_at?: string
+          excluded_at?: string | null
+          excluded_from_ranking?: boolean
+          excluded_from_round?: boolean
           full_hits?: number | null
           id?: string
           league_id: string
@@ -106,6 +112,9 @@ export type Database = {
         Update: {
           amount?: number
           created_at?: string
+          excluded_at?: string | null
+          excluded_from_ranking?: boolean
+          excluded_from_round?: boolean
           full_hits?: number | null
           id?: string
           league_id?: string

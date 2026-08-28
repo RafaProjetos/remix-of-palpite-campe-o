@@ -28,7 +28,7 @@ export const adminOverview = createServerFn({ method: "GET" })
 
     let query = supabase
       .from("bets")
-      .select("id, user_id, status, amount, total_points, full_hits, winner_hits, created_at, paid_at")
+      .select("id, user_id, status, amount, total_points, full_hits, winner_hits, created_at, paid_at, excluded_from_round, excluded_from_ranking")
       .eq("round_id", data.roundId)
       .order("total_points", { ascending: false })
       .order("full_hits", { ascending: false })
@@ -45,7 +45,13 @@ export const adminOverview = createServerFn({ method: "GET" })
       _round_id: data.roundId,
       _league_type: (data.leagueType || 'ouro') as "free" | "bronze" | "prata" | "ouro"
     });
-    
+
+    const { data: excludedRows } = await supabaseAdmin
+      .from("bets")
+      .select("user_id")
+      .eq("excluded_from_ranking", true);
+    const rankingExcluded = Array.from(new Set((excludedRows ?? []).map((r: any) => r.user_id)));
+
     const byId = new Map((profiles.data ?? []).map((p: any) => [p.id, p]));
     return {
       participants: (bets.data ?? []).map((b: any) => ({
@@ -53,10 +59,13 @@ export const adminOverview = createServerFn({ method: "GET" })
         full_name: byId.get(b.user_id)?.full_name ?? "Apostador",
         email: byId.get(b.user_id)?.email ?? "",
         phone: byId.get(b.user_id)?.phone ?? "",
+        excluded_from_ranking: b.excluded_from_ranking || rankingExcluded.includes(b.user_id),
       })),
+      rankingExcluded,
       stats: (stats as any)?.[0] ?? null,
     };
   });
+
 
 export const adminBetDetail = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -355,39 +364,59 @@ export const adminDeleteUser = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-// Remove a participação (aposta + palpites) de um usuário em UMA rodada, sem apagar o cadastro
+// Remove a participação do usuário em UMA rodada (marcação reversível).
+// Não afeta o ranking geral das demais rodadas.
 export const adminRemoveParticipantFromRound = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { betId: string }) => z.object({ betId: z.string().uuid() }).parse(d))
+  .inputValidator((d: { betId: string; undo?: boolean }) =>
+    z.object({ betId: z.string().uuid(), undo: z.boolean().optional() }).parse(d),
+  )
   .handler(async ({ context, data }) => {
     await assertAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.from("bet_picks").delete().eq("bet_id", data.betId);
-    await supabaseAdmin.from("payments").delete().eq("bet_id", data.betId);
-    const { error } = await supabaseAdmin.from("bets").delete().eq("id", data.betId);
+    const undo = data.undo === true;
+    const { error } = await supabaseAdmin
+      .from("bets")
+      .update({
+        excluded_from_round: !undo,
+        excluded_at: undo ? null : new Date().toISOString(),
+      })
+      .eq("id", data.betId);
     if (error) throw new Error(error.message);
-    return { ok: true };
+    return { ok: true, undo };
   });
 
-// Remove o usuário de TODOS os rankings (apaga todas as apostas), mantendo o cadastro
+// Remove o usuário do RANKING GERAL (marcação reversível), preservando
+// a participação na rodada informada (rodada em andamento).
 export const adminRemoveParticipantFromRanking = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { userId: string }) => z.object({ userId: z.string().uuid() }).parse(d))
+  .inputValidator((d: { userId: string; keepRoundId?: string; undo?: boolean }) =>
+    z
+      .object({
+        userId: z.string().uuid(),
+        keepRoundId: z.string().uuid().optional(),
+        undo: z.boolean().optional(),
+      })
+      .parse(d),
+  )
   .handler(async ({ context, data }) => {
     await assertAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: bets, error: betsError } = await supabaseAdmin
+    const undo = data.undo === true;
+
+    let query = supabaseAdmin
       .from("bets")
-      .select("id")
+      .update({ excluded_from_ranking: !undo })
       .eq("user_id", data.userId);
-    if (betsError) throw new Error(betsError.message);
-    const ids = (bets ?? []).map((b) => b.id);
-    if (ids.length > 0) {
-      await supabaseAdmin.from("bet_picks").delete().in("bet_id", ids);
-      await supabaseAdmin.from("payments").delete().in("bet_id", ids);
-      const { error } = await supabaseAdmin.from("bets").delete().in("id", ids);
-      if (error) throw new Error(error.message);
+
+    // A rodada atual continua valendo: o participante segue na rodada.
+    if (!undo && data.keepRoundId) {
+      query = query.neq("round_id", data.keepRoundId);
     }
-    return { ok: true, removed: ids.length };
+
+    const { error } = await query;
+    if (error) throw new Error(error.message);
+    return { ok: true, undo };
   });
+
 
