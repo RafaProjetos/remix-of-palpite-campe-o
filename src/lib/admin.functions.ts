@@ -354,3 +354,40 @@ export const adminDeleteUser = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// Remove a participação (aposta + palpites) de um usuário em UMA rodada, sem apagar o cadastro
+export const adminRemoveParticipantFromRound = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { betId: string }) => z.object({ betId: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("bet_picks").delete().eq("bet_id", data.betId);
+    await supabaseAdmin.from("payments").delete().eq("bet_id", data.betId);
+    const { error } = await supabaseAdmin.from("bets").delete().eq("id", data.betId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// Remove o usuário de TODOS os rankings (apaga todas as apostas), mantendo o cadastro
+export const adminRemoveParticipantFromRanking = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { userId: string }) => z.object({ userId: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: bets, error: betsError } = await supabaseAdmin
+      .from("bets")
+      .select("id")
+      .eq("user_id", data.userId);
+    if (betsError) throw new Error(betsError.message);
+    const ids = (bets ?? []).map((b) => b.id);
+    if (ids.length > 0) {
+      await supabaseAdmin.from("bet_picks").delete().in("bet_id", ids);
+      await supabaseAdmin.from("payments").delete().in("bet_id", ids);
+      const { error } = await supabaseAdmin.from("bets").delete().in("id", ids);
+      if (error) throw new Error(error.message);
+    }
+    return { ok: true, removed: ids.length };
+  });
+
