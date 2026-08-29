@@ -240,7 +240,7 @@ function Admin() {
       return;
     setOcupado(true);
     try {
-      await removerDoRankingFn({ data: { userId, keepRoundId: roundId ?? undefined, undo } });
+      await removerDoRankingFn({ data: { userId, undo, ...(roundId ? { keepRoundId: roundId } : {}) } });
       toast.success(undo ? "Remoção do ranking desfeita." : "Participante removido do ranking geral.");
       await overview.refetch();
     } catch (e: any) {
