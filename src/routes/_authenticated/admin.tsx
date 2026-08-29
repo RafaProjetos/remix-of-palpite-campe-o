@@ -41,7 +41,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Download, Trash2, UserMinus, ListX } from "lucide-react";
+import { Download, Trash2, UserMinus, ListX, Undo2 } from "lucide-react";
 
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -240,7 +240,7 @@ function Admin() {
       return;
     setOcupado(true);
     try {
-      await removerDoRankingFn({ data: { userId, keepRoundId: roundId ?? undefined, undo } });
+      await removerDoRankingFn({ data: { userId, undo, ...(roundId ? { keepRoundId: roundId } : {}) } });
       toast.success(undo ? "Remoção do ranking desfeita." : "Participante removido do ranking geral.");
       await overview.refetch();
     } catch (e: any) {
@@ -608,13 +608,20 @@ function Admin() {
               <div key={p.id} className="flex w-full items-center gap-2">
                 <button
                   onClick={() => abrirAposta(p)}
-                  className="flex flex-1 items-center justify-between rounded-md border border-border px-3 py-2 text-left transition-colors hover:bg-muted"
+                  className={`flex flex-1 items-center justify-between rounded-md border border-border px-3 py-2 text-left transition-colors hover:bg-muted ${p.excluded_from_round ? "opacity-50" : ""}`}
                 >
                   <div className="flex flex-col gap-0.5">
                     <span className="text-sm font-medium">{p.full_name}</span>
                     <span className="text-xs text-muted-foreground">
                       {p.email} {p.phone && `· ${p.phone}`}
                     </span>
+                    {(p.excluded_from_round || p.excluded_from_ranking) && (
+                      <span className="text-xs font-medium text-amber-600">
+                        {p.excluded_from_round ? "Removido desta rodada" : ""}
+                        {p.excluded_from_round && p.excluded_from_ranking ? " · " : ""}
+                        {p.excluded_from_ranking ? "Removido do ranking geral" : ""}
+                      </span>
+                    )}
                   </div>
                   <span className="flex items-center gap-2">
                     <Badge variant={p.status === "paid" ? "default" : "secondary"}>
@@ -639,31 +646,48 @@ function Admin() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-amber-600 hover:bg-amber-500/10 hover:text-amber-600"
+                  className={
+                    p.excluded_from_round
+                      ? "text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-600"
+                      : "text-amber-600 hover:bg-amber-500/10 hover:text-amber-600"
+                  }
                   disabled={ocupado}
                   onClick={(e) => {
                     e.stopPropagation();
-                    removerDaRodada(p.id, p.full_name);
+                    removerDaRodada(p.id, p.full_name, p.excluded_from_round === true);
                   }}
-                  title="Apagar participação nesta rodada (mantém o cadastro)"
+                  title={
+                    p.excluded_from_round
+                      ? "Desfazer remoção desta rodada"
+                      : "Remover desta rodada (não afeta o ranking geral)"
+                  }
                 >
-                  <UserMinus className="h-4 w-4" />
+                  {p.excluded_from_round ? <Undo2 className="h-4 w-4" /> : <UserMinus className="h-4 w-4" />}
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-orange-600 hover:bg-orange-500/10 hover:text-orange-600"
+                  className={
+                    p.excluded_from_ranking
+                      ? "text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-600"
+                      : "text-orange-600 hover:bg-orange-500/10 hover:text-orange-600"
+                  }
                   disabled={ocupado}
                   onClick={(e) => {
                     e.stopPropagation();
-                    removerDoRanking(p.user_id, p.full_name);
+                    removerDoRanking(p.user_id, p.full_name, p.excluded_from_ranking === true);
                   }}
-                  title="Apagar do ranking geral (mantém o cadastro)"
+                  title={
+                    p.excluded_from_ranking
+                      ? "Desfazer remoção do ranking geral"
+                      : "Remover do ranking geral (mantém a participação na rodada)"
+                  }
                 >
-                  <ListX className="h-4 w-4" />
+                  {p.excluded_from_ranking ? <Undo2 className="h-4 w-4" /> : <ListX className="h-4 w-4" />}
                 </Button>
               </div>
             ))}
+
           </CardContent>
         </Card>
 
