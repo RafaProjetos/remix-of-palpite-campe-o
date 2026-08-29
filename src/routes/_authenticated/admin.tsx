@@ -41,7 +41,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Download, Trash2, UserMinus, ListX } from "lucide-react";
+import { Download, Trash2, UserMinus, ListX, Undo2 } from "lucide-react";
 
 
 export const Route = createFileRoute("/_authenticated/admin")({
