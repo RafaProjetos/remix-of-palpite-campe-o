@@ -8,7 +8,6 @@ export const SERIE_A_TEAMS = [
   "CHAPECOENSE",
   "CORITIBA",
   "CRUZEIRO",
-  "CUIABÁ",
   "FLAMENGO",
   "FLUMINENSE",
   "GRÊMIO",
