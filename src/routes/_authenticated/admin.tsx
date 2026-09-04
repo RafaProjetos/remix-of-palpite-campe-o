@@ -606,14 +606,15 @@ function Admin() {
               <p className="text-sm text-muted-foreground">Ainda não há apostas nesta rodada.</p>
             )}
             {(overview.data?.participants ?? []).map((p: any) => (
-              <div key={p.id} className="flex w-full items-center gap-2">
+              <div key={p.id} className="flex w-full min-w-0 flex-wrap items-center gap-2">
                 <button
                   onClick={() => abrirAposta(p)}
-                  className={`flex flex-1 items-center justify-between rounded-md border border-border px-3 py-2 text-left transition-colors hover:bg-muted ${p.excluded_from_round ? "opacity-50" : ""}`}
+                  className={`flex w-full min-w-0 flex-1 flex-col gap-2 rounded-md border border-border px-3 py-2 text-left transition-colors hover:bg-muted sm:flex-row sm:items-center sm:justify-between ${p.excluded_from_round ? "opacity-50" : ""}`}
                 >
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-sm font-medium">{p.full_name}</span>
-                    <span className="text-xs text-muted-foreground">
+                  <div className="flex min-w-0 flex-col gap-0.5">
+                    <span className="truncate text-sm font-medium">{p.full_name}</span>
+                    <span className="truncate text-xs text-muted-foreground">
+
                       {p.email} {p.phone && `· ${p.phone}`}
                     </span>
                     {(p.excluded_from_round || p.excluded_from_ranking) && (
