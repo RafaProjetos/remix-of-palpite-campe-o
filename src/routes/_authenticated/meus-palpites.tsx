@@ -258,7 +258,7 @@ function MeusPalpites() {
                         </div>
                       )}
 
-                      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4">
+                      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-4">
                         {/* Time Mandante */}
                         <div className="flex flex-col items-end gap-1 overflow-hidden text-right">
                           <TeamBadge name={m.home_team} logo={m.home_logo} position="home" className="text-xs font-bold sm:text-sm" />
