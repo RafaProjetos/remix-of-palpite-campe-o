@@ -767,7 +767,8 @@ function Admin() {
                       aria-label={`Gols reais do ${m.away_team}`}
                     />
                   </div>
-                  <div className="flex gap-2">
+                  <div className="order-4 col-span-3 flex justify-center sm:order-3 sm:col-span-1 sm:justify-start">
+
                     <Button
                       size="sm"
                       variant="secondary"
