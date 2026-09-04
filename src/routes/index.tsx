@@ -252,9 +252,10 @@ function Home() {
         </div>
 
         {/* League Overview (Vitrine) */}
-        <div className="lg:col-span-3 mt-8">
+        <div className="min-w-0 lg:col-span-3 mt-8">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-extrabold tracking-tight">Escolha sua Liga</h2>
+            <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Escolha sua Liga</h2>
+
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Liga Free */}
