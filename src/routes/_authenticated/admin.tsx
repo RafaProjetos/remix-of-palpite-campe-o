@@ -305,12 +305,17 @@ function Admin() {
           <CardHeader>
             <CardTitle>Rodada</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-end">
-            <div className="flex gap-3">
-              <div className="flex-1 space-y-1 sm:flex-none">
+          <CardContent className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
+            <div className="grid w-full min-w-0 grid-cols-2 gap-3 sm:w-auto sm:grid-cols-none sm:flex sm:flex-wrap">
+              <div className="min-w-0 space-y-1">
                 <Label>Temporada</Label>
                 <Input className="w-full sm:w-28" value={temporada} onChange={(e) => setTemporada(e.target.value)} />
-              <div className="flex-1 space-y-1 sm:flex-none">
+              </div>
+              <div className="min-w-0 space-y-1">
+                <Label>Nº da rodada</Label>
+                <Input className="w-full sm:w-24" value={numero} onChange={(e) => setNumero(e.target.value)} />
+              </div>
+              <div className="col-span-2 min-w-0 space-y-1 sm:col-span-1">
                 <Label>Fecha em (obrigatório)</Label>
                 <Input
                   type="datetime-local"
@@ -321,11 +326,7 @@ function Admin() {
                 />
               </div>
             </div>
-              <div className="flex-1 space-y-1 sm:flex-none">
-                <Label>Nº da rodada</Label>
-                <Input className="w-full sm:w-24" value={numero} onChange={(e) => setNumero(e.target.value)} />
-              </div>
-            </div>
+
             <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:gap-3">
               <Button
                 disabled={ocupado}
