@@ -625,7 +625,7 @@ function Admin() {
                       </span>
                     )}
                   </div>
-                  <span className="flex items-center gap-2">
+                  <span className="flex shrink-0 items-center gap-2">
                     <Badge variant={p.status === "paid" ? "default" : "secondary"}>
                       {p.status === "paid" ? "Prêmio" : "Gratuito"}
                     </Badge>
