@@ -116,10 +116,11 @@ function Home() {
       </section>
 
       {/* Main Content Grid */}
-      <main className="container mx-auto grid max-w-6xl gap-8 px-4 py-16 lg:grid-cols-3">
+      <main className="container mx-auto grid w-full max-w-6xl gap-8 px-4 py-16 lg:grid-cols-3">
 
         {/* Round Games */}
-        <Card className="lg:col-span-2 border-none shadow-xl">
+        <Card className="min-w-0 lg:col-span-2 border-none shadow-xl">
+
           <CardHeader className="flex flex-col space-y-4 border-b pb-6 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
             <div>
               <p className="text-sm font-bold uppercase tracking-widest text-primary mb-1">Próximos Jogos</p>
