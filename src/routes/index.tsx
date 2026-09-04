@@ -139,7 +139,7 @@ function Home() {
             )}
           </CardHeader>
           <CardContent className="p-0">
-            <div className="grid grid-cols-1 md:grid-cols-2">
+            <div className="grid min-w-0 grid-cols-1 md:grid-cols-2">
               {matches.length === 0 && (
                 <div className="p-8 text-center col-span-2">
                   <p className="text-muted-foreground">Os jogos desta rodada serão publicados em breve.</p>
@@ -148,11 +148,11 @@ function Home() {
               {matches.map((m: any, i: number) => (
                 <div
                   key={m.id}
-                  className={`flex items-center justify-between p-4 sm:p-6 transition-colors hover:bg-muted/30 ${
+                  className={`flex min-w-0 items-center justify-between gap-2 p-3 sm:gap-3 sm:p-6 transition-colors hover:bg-muted/30 ${
                     i % 2 === 0 ? 'md:border-r' : ''
                   } ${i < matches.length - 2 ? 'border-b' : (i < matches.length - 1 ? 'border-b md:border-b-0' : '')}`}
                 >
-                  <div className="flex flex-col items-center gap-2 flex-[1.5] min-w-0">
+                  <div className="flex min-w-0 flex-[1.5] flex-col items-center gap-2">
                     <TeamBadge
                       name={m.home_team}
                       logo={m.home_logo}
@@ -162,19 +162,19 @@ function Home() {
                       hideNameOnMobile={true}
                     />
                   </div>
-                  <div className="flex flex-col items-center px-4">
-                    <span className="rounded-full bg-primary/10 px-4 py-2 text-sm font-black text-primary mb-1 whitespace-nowrap">
+                  <div className="flex min-w-0 shrink-0 flex-col items-center px-1 sm:px-4">
+                    <span className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-black text-primary mb-1 whitespace-nowrap sm:px-4 sm:py-2 sm:text-sm">
                       {m.home_score !== null && m.away_score !== null
                         ? `${m.home_score} x ${m.away_score}`
                         : "VS"}
                     </span>
                     {m.kickoff_at && (
-                      <span className="text-[10px] text-muted-foreground font-medium uppercase">
+                      <span className="text-[9px] sm:text-[10px] text-muted-foreground font-medium uppercase whitespace-nowrap">
                         {new Date(m.kickoff_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                       </span>
                     )}
                   </div>
-                  <div className="flex flex-col items-center gap-2 flex-[1.5] min-w-0">
+                  <div className="flex min-w-0 flex-[1.5] flex-col items-center gap-2">
                     <TeamBadge
                       name={m.away_team}
                       logo={m.away_logo}
@@ -187,6 +187,7 @@ function Home() {
                 </div>
               ))}
             </div>
+
           </CardContent>
           <div className="p-6 border-t bg-muted/10">
             <Button asChild className="w-full h-12 font-bold text-lg" size="lg">
