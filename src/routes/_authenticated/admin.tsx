@@ -730,10 +730,11 @@ function Admin() {
               {matches.map((m) => (
                 <div
                   key={m.id}
-                  className="grid grid-cols-[1fr_auto_auto_1fr] items-center gap-2 rounded-lg border border-border p-3"
+                  className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 rounded-lg border border-border p-2 sm:grid-cols-[minmax(0,1fr)_auto_auto_minmax(0,1fr)] sm:p-3"
                 >
-                  <TeamBadge name={m.home_team} logo={m.home_logo} />
-                  <div className="flex items-center gap-1">
+                  <div className="order-1 min-w-0"><TeamBadge name={m.home_team} logo={m.home_logo} /></div>
+                  <div className="order-2 flex shrink-0 items-center gap-1">
+
                     <Input
                       className="h-10 w-12 text-center"
                       inputMode="numeric"
