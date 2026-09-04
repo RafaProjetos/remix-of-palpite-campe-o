@@ -589,7 +589,7 @@ function Admin() {
 
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <CardTitle>Participantes</CardTitle>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={exportarExcel} disabled={!overview.data?.participants?.length}>
