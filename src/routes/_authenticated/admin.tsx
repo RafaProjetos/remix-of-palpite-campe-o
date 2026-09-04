@@ -790,7 +790,7 @@ function Admin() {
                       Salvar
                     </Button>
                   </div>
-                  <div className="flex justify-end">
+                  <div className="order-3 flex min-w-0 justify-end sm:order-4">
                     <TeamBadge name={m.away_team} logo={m.away_logo} position="home" />
                   </div>
                 </div>
