@@ -305,12 +305,17 @@ function Admin() {
           <CardHeader>
             <CardTitle>Rodada</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-end">
-            <div className="flex gap-3">
-              <div className="flex-1 space-y-1 sm:flex-none">
+          <CardContent className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
+            <div className="grid w-full min-w-0 grid-cols-2 gap-3 sm:w-auto sm:grid-cols-none sm:flex sm:flex-wrap">
+              <div className="min-w-0 space-y-1">
                 <Label>Temporada</Label>
                 <Input className="w-full sm:w-28" value={temporada} onChange={(e) => setTemporada(e.target.value)} />
-              <div className="flex-1 space-y-1 sm:flex-none">
+              </div>
+              <div className="min-w-0 space-y-1">
+                <Label>Nº da rodada</Label>
+                <Input className="w-full sm:w-24" value={numero} onChange={(e) => setNumero(e.target.value)} />
+              </div>
+              <div className="col-span-2 min-w-0 space-y-1 sm:col-span-1">
                 <Label>Fecha em (obrigatório)</Label>
                 <Input
                   type="datetime-local"
@@ -321,11 +326,7 @@ function Admin() {
                 />
               </div>
             </div>
-              <div className="flex-1 space-y-1 sm:flex-none">
-                <Label>Nº da rodada</Label>
-                <Input className="w-full sm:w-24" value={numero} onChange={(e) => setNumero(e.target.value)} />
-              </div>
-            </div>
+
             <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:gap-3">
               <Button
                 disabled={ocupado}
@@ -588,7 +589,7 @@ function Admin() {
 
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <CardTitle>Participantes</CardTitle>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={exportarExcel} disabled={!overview.data?.participants?.length}>
@@ -605,15 +606,16 @@ function Admin() {
               <p className="text-sm text-muted-foreground">Ainda não há apostas nesta rodada.</p>
             )}
             {(overview.data?.participants ?? []).map((p: any) => (
-              <div key={p.id} className="flex w-full items-center gap-2">
+              <div key={p.id} className="flex w-full min-w-0 flex-wrap items-center gap-2">
                 <button
                   onClick={() => abrirAposta(p)}
-                  className={`flex flex-1 items-center justify-between rounded-md border border-border px-3 py-2 text-left transition-colors hover:bg-muted ${p.excluded_from_round ? "opacity-50" : ""}`}
+                  className={`flex w-full min-w-0 flex-1 flex-col gap-2 rounded-md border border-border px-3 py-2 text-left transition-colors hover:bg-muted sm:flex-row sm:items-center sm:justify-between ${p.excluded_from_round ? "opacity-50" : ""}`}
                 >
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-sm font-medium">{p.full_name}</span>
-                    <span className="text-xs text-muted-foreground">
+                  <div className="flex min-w-0 flex-col gap-0.5">
+                    <span className="truncate text-sm font-medium">{p.full_name}</span>
+                    <span className="truncate text-xs text-muted-foreground">
                       {p.email} {p.phone && `· ${p.phone}`}
+
                     </span>
                     {(p.excluded_from_round || p.excluded_from_ranking) && (
                       <span className="text-xs font-medium text-amber-600">
@@ -623,7 +625,7 @@ function Admin() {
                       </span>
                     )}
                   </div>
-                  <span className="flex items-center gap-2">
+                  <span className="flex shrink-0 items-center gap-2">
                     <Badge variant={p.status === "paid" ? "default" : "secondary"}>
                       {p.status === "paid" ? "Prêmio" : "Gratuito"}
                     </Badge>
@@ -728,10 +730,11 @@ function Admin() {
               {matches.map((m) => (
                 <div
                   key={m.id}
-                  className="grid grid-cols-[1fr_auto_auto_1fr] items-center gap-2 rounded-lg border border-border p-3"
+                  className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 rounded-lg border border-border p-2 sm:grid-cols-[minmax(0,1fr)_auto_auto_minmax(0,1fr)] sm:p-3"
                 >
-                  <TeamBadge name={m.home_team} logo={m.home_logo} />
-                  <div className="flex items-center gap-1">
+                  <div className="order-1 min-w-0"><TeamBadge name={m.home_team} logo={m.home_logo} /></div>
+                  <div className="order-2 flex shrink-0 items-center gap-1">
+
                     <Input
                       className="h-10 w-12 text-center"
                       inputMode="numeric"
@@ -764,7 +767,8 @@ function Admin() {
                       aria-label={`Gols reais do ${m.away_team}`}
                     />
                   </div>
-                  <div className="flex gap-2">
+                  <div className="order-4 col-span-3 flex justify-center sm:order-3 sm:col-span-1 sm:justify-start">
+
                     <Button
                       size="sm"
                       variant="secondary"
@@ -786,7 +790,7 @@ function Admin() {
                       Salvar
                     </Button>
                   </div>
-                  <div className="flex justify-end">
+                  <div className="order-3 flex min-w-0 justify-end sm:order-4">
                     <TeamBadge name={m.away_team} logo={m.away_logo} position="home" />
                   </div>
                 </div>
