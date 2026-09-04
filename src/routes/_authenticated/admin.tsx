@@ -614,8 +614,8 @@ function Admin() {
                   <div className="flex min-w-0 flex-col gap-0.5">
                     <span className="truncate text-sm font-medium">{p.full_name}</span>
                     <span className="truncate text-xs text-muted-foreground">
-
                       {p.email} {p.phone && `· ${p.phone}`}
+
                     </span>
                     {(p.excluded_from_round || p.excluded_from_ranking) && (
                       <span className="text-xs font-medium text-amber-600">
