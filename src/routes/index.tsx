@@ -197,7 +197,7 @@ function Home() {
         </Card>
 
         {/* Sidebar: Ranking & Security */}
-        <div className="space-y-8">
+        <div className="min-w-0 space-y-8">
           <Card className="border-none shadow-xl overflow-hidden">
             <CardHeader className="bg-primary text-primary-foreground">
               <CardTitle className="text-xl">Ranking da Rodada</CardTitle>
