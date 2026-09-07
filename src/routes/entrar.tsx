@@ -113,7 +113,7 @@ function Entrar() {
     const { error } = await supabase.auth.signInWithPassword({ email: identifier, password: senha });
     setCarregando(false);
     if (error) {
-      toast.error(error.message);
+      toast.error(traduzirErro(error.message));
       return;
     }
     navigate({ to: "/palpitar" });
