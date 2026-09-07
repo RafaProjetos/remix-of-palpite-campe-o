@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trophy, Users, Info } from "lucide-react";
 import { traduzirErro } from "@/lib/mensagens";
+import { useSessao } from "@/hooks/use-sessao";
 
 export const Route = createFileRoute("/_authenticated/palpitar")({
   head: () => ({
