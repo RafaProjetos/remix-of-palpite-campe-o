@@ -68,6 +68,23 @@ function Entrar() {
   const [emailRecuperacao, setEmailRecuperacao] = useState("");
   const [ciente, setCiente] = useState(false);
   const [dialogoAberto, setDialogoAberto] = useState(false);
+  const [cadastroConcluido, setCadastroConcluido] = useState(false);
+  const [reenviando, setReenviando] = useState(false);
+
+  async function reenviarConfirmacao() {
+    setReenviando(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/palpitar` },
+    });
+    setReenviando(false);
+    if (error) {
+      toast.error(traduzirErro(error.message));
+      return;
+    }
+    toast.success("Enviamos novamente o e-mail de confirmação.");
+  }
 
   async function recuperarSenha() {
     if (!emailRecuperacao) {
