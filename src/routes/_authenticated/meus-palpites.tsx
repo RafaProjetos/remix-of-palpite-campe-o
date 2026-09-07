@@ -38,13 +38,18 @@ function MeusPalpites() {
   const [selectedLeagueId, setSelectedLeagueId] = useState<string>("");
   const [isPaying, setIsPaying] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const temSessao = useSessao();
 
   const listaRodadas = useQuery({ queryKey: ["lista-rodadas"], queryFn: () => carregarListaRodadas({}) });
   const rodada = useQuery({ 
     queryKey: ["rodada", selectedRoundId], 
     queryFn: () => carregarRodada({ data: { roundId: selectedRoundId || null } }) 
   });
-  const status = useQuery({ queryKey: ["meu-status"], queryFn: () => carregarStatus({ data: undefined }) });
+  const status = useQuery({
+    queryKey: ["meu-status"],
+    queryFn: () => carregarStatus({ data: undefined }),
+    enabled: temSessao === true,
+  });
   
   useEffect(() => {
     const firstRound = listaRodadas.data?.[0];
