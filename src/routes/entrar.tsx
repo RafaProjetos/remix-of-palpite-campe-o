@@ -15,27 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 
 const ADMIN_EMAIL = "adm@palpitedarodada.app";
 
-const MENSAGENS_PT: Array<[RegExp, string]> = [
-  [/email not confirmed/i, "E-mail não confirmado. Verifique sua caixa de entrada e confirme o cadastro."],
-  [/invalid login credentials/i, "E-mail ou senha incorretos."],
-  [/user already registered|already been registered/i, "Este e-mail já está cadastrado. Faça login ou recupere a senha."],
-  [/password should be at least (\d+)/i, "A senha deve ter pelo menos $1 caracteres."],
-  [/unable to validate email address|invalid format/i, "Informe um e-mail válido."],
-  [/email rate limit exceeded|over_email_send_rate_limit/i, "Muitas tentativas. Aguarde alguns minutos e tente novamente."],
-  [/for security purposes.*(\d+) seconds/i, "Por segurança, aguarde $1 segundos antes de tentar novamente."],
-  [/signups not allowed|signup is disabled/i, "Os cadastros estão temporariamente desativados."],
-  [/user not found/i, "Não encontramos uma conta com esse e-mail."],
-  [/token has expired|invalid token/i, "O link expirou. Solicite um novo e-mail de confirmação."],
-  [/network|failed to fetch/i, "Falha de conexão. Verifique sua internet e tente novamente."],
-];
-
-function traduzirErro(mensagem?: string) {
-  if (!mensagem) return "Ocorreu um erro. Tente novamente.";
-  for (const [padrao, texto] of MENSAGENS_PT) {
-    if (padrao.test(mensagem)) return mensagem.replace(padrao, texto);
-  }
-  return mensagem;
-}
+import { traduzirErro } from "@/lib/mensagens";
 
 export const Route = createFileRoute("/entrar")({
   head: () => ({
