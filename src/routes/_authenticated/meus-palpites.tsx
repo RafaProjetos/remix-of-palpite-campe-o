@@ -81,10 +81,10 @@ function MeusPalpites() {
   const aposta = useQuery({
     queryKey: ["minha-aposta", roundId, selectedLeagueId],
     queryFn: () => carregarAposta({ data: selectedLeagueId ? { roundId: roundId!, leagueId: selectedLeagueId } : { roundId: roundId! } }),
-    enabled: Boolean(roundId),
+    enabled: Boolean(roundId) && temSessao === true,
   });
 
-  if (rodada.isLoading || status.isLoading) {
+  if (temSessao === null || rodada.isLoading || status.isLoading) {
     return (
       <div className="min-h-screen bg-background">
         <SiteHeader />
