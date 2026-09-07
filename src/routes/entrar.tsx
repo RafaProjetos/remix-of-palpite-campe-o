@@ -153,21 +153,22 @@ function Entrar() {
     const { data, error } = await supabase.auth.signUp({
       email,
       password: senha,
-      options: { 
-        data: { 
+      options: {
+        emailRedirectTo: `${window.location.origin}/palpitar`,
+        data: {
           full_name: nome,
-          phone: telefone
-        }, 
+          phone: telefone,
+        },
       },
     });
-    
+
     if (error) {
       setCarregando(false);
-      toast.error(error.message);
+      toast.error(traduzirErro(error.message));
       return;
     }
 
-    // Se a sessão já estiver presente (auto-login), salvar o perfil
+    // Se a conta já vier confirmada (sessão ativa), salvamos o perfil
     if (data.session) {
       try {
         await aceitarTermos({ data: { fullName: nome, phone: telefone } });
@@ -176,44 +177,10 @@ function Entrar() {
       }
     }
 
-    // Tentar logar imediatamente caso o signUp não auto-logue (depende da config do projeto)
-    if (!data.session) {
-      console.log("Sem sessão após signUp, tentando login manual...");
-      const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({ 
-        email, 
-        password: senha 
-      });
-      
-      if (loginError) {
-        setCarregando(false);
-        console.error("Erro no login automático:", loginError);
-        // Se falhar o login, mas a conta foi criada, avisamos e deixamos o usuário tentar entrar manualmente
-        toast.info("Conta criada com sucesso! Por favor, entre com seu e-mail e senha abaixo.");
-        // Mudar para a aba de entrar
-        const tabsElement = document.querySelector('[role="tablist"]');
-        const entrarTab = tabsElement?.querySelector('[value="entrar"]') as HTMLElement;
-        entrarTab?.click();
-        return;
-      }
-      
-      if (!loginData.session) {
-        setCarregando(false);
-        toast.info("Conta criada com sucesso! Por favor, entre com seu e-mail e senha abaixo.");
-        return;
-      }
-
-      // Após login manual, salvar perfil
-      try {
-        await aceitarTermos({ data: { fullName: nome, phone: telefone } });
-      } catch (e) {
-        console.error("Erro ao atualizar perfil:", e);
-      }
-    }
-    
     setCarregando(false);
-    toast.success("Cadastro realizado!");
-    navigate({ to: "/regulamento" });
+    setCadastroConcluido(true);
   }
+
 
 
   return (
