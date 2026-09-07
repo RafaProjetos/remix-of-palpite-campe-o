@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trophy, Users, Info } from "lucide-react";
 import { traduzirErro } from "@/lib/mensagens";
+import { useSessao } from "@/hooks/use-sessao";
 
 export const Route = createFileRoute("/_authenticated/palpitar")({
   head: () => ({
@@ -66,13 +67,18 @@ function Palpitar() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const status = useQuery({ queryKey: ["meu-status"], queryFn: () => carregarStatus({}) });
+  const temSessao = useSessao();
+  const status = useQuery({
+    queryKey: ["meu-status"],
+    queryFn: () => carregarStatus({}),
+    enabled: temSessao === true,
+  });
   const roundId = rodada.data?.round?.id as string | undefined;
 
   const aposta = useQuery({
     queryKey: ["minha-aposta", roundId, activeLeague?.id],
     queryFn: () => carregarAposta({ data: { roundId: roundId!, leagueId: activeLeague?.id } }),
-    enabled: Boolean(roundId) && Boolean(activeLeague?.id),
+    enabled: Boolean(roundId) && Boolean(activeLeague?.id) && temSessao === true,
   });
 
   const leagueStats = useQuery({

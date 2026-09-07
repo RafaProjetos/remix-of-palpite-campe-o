@@ -12,6 +12,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 import { traduzirErro } from "@/lib/mensagens";
+import { useSessao } from "@/hooks/use-sessao";
 
 export const Route = createFileRoute("/_authenticated/meus-palpites")({
   head: () => ({
@@ -37,13 +38,18 @@ function MeusPalpites() {
   const [selectedLeagueId, setSelectedLeagueId] = useState<string>("");
   const [isPaying, setIsPaying] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const temSessao = useSessao();
 
   const listaRodadas = useQuery({ queryKey: ["lista-rodadas"], queryFn: () => carregarListaRodadas({}) });
   const rodada = useQuery({ 
     queryKey: ["rodada", selectedRoundId], 
     queryFn: () => carregarRodada({ data: { roundId: selectedRoundId || null } }) 
   });
-  const status = useQuery({ queryKey: ["meu-status"], queryFn: () => carregarStatus({ data: undefined }) });
+  const status = useQuery({
+    queryKey: ["meu-status"],
+    queryFn: () => carregarStatus({ data: undefined }),
+    enabled: temSessao === true,
+  });
   
   useEffect(() => {
     const firstRound = listaRodadas.data?.[0];
@@ -57,7 +63,7 @@ function MeusPalpites() {
   const minhasApostas = useQuery({
     queryKey: ["minhas-apostas", roundId],
     queryFn: () => carregarMinhasApostas({ data: { roundId: roundId! } }),
-    enabled: Boolean(roundId),
+    enabled: Boolean(roundId) && temSessao === true,
   });
 
   const apostasRodada = (minhasApostas.data ?? []) as any[];
@@ -75,10 +81,10 @@ function MeusPalpites() {
   const aposta = useQuery({
     queryKey: ["minha-aposta", roundId, selectedLeagueId],
     queryFn: () => carregarAposta({ data: selectedLeagueId ? { roundId: roundId!, leagueId: selectedLeagueId } : { roundId: roundId! } }),
-    enabled: Boolean(roundId),
+    enabled: Boolean(roundId) && temSessao === true,
   });
 
-  if (rodada.isLoading || status.isLoading) {
+  if (temSessao === null || rodada.isLoading || status.isLoading) {
     return (
       <div className="min-h-screen bg-background">
         <SiteHeader />
