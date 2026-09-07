@@ -12,6 +12,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 import { traduzirErro } from "@/lib/mensagens";
+import { useSessao } from "@/hooks/use-sessao";
 
 export const Route = createFileRoute("/_authenticated/meus-palpites")({
   head: () => ({
