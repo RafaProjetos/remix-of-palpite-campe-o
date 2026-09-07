@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { traduzirErro } from "@/lib/mensagens";
 
 export const Route = createFileRoute("/_authenticated/meus-palpites")({
   head: () => ({
@@ -110,7 +111,7 @@ function MeusPalpites() {
       });
       window.location.href = initPoint;
     } catch (error: any) {
-      toast.error(error.message || "Erro ao iniciar pagamento");
+      toast.error(traduzirErro(error.message) || "Erro ao iniciar pagamento");
       setIsPaying(false);
     }
   };
@@ -126,7 +127,7 @@ function MeusPalpites() {
       toast.success(res.message);
       aposta.refetch();
     } catch (error: any) {
-      toast.error(error.message || "Erro ao sincronizar status");
+      toast.error(traduzirErro(error.message) || "Erro ao sincronizar status");
     } finally {
       setIsSyncing(false);
     }

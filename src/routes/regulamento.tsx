@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { traduzirErro } from "@/lib/mensagens";
 
 export const Route = createFileRoute("/regulamento")({
   head: () => ({
@@ -70,7 +71,7 @@ function Regulamento() {
       await statusQuery.refetch();
       navigate({ to: "/palpitar" });
     } catch (e: any) {
-      toast.error(e?.message ?? "Não foi possível salvar o aceite.");
+      toast.error(traduzirErro(e?.message) ?? "Não foi possível salvar o aceite.");
     } finally {
       setEnviando(false);
     }

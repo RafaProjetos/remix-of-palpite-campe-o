@@ -42,6 +42,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Download, Trash2, UserMinus, ListX, Undo2 } from "lucide-react";
+import { traduzirErro } from "@/lib/mensagens";
 
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -112,7 +113,7 @@ function Admin() {
       toast.success(sucesso);
       await Promise.all([rodada.refetch(), overview.refetch()]);
     } catch (e: any) {
-      toast.error(e?.message ?? "Erro ao executar a ação.");
+      toast.error(traduzirErro(e?.message) ?? "Erro ao executar a ação.");
     } finally {
       setOcupado(false);
     }
@@ -124,7 +125,7 @@ function Admin() {
       const d = await detailFn({ data: { betId: bet.id } });
       setPicks(d.picks as any[]);
     } catch (e: any) {
-      toast.error(e?.message ?? "Erro ao carregar palpites.");
+      toast.error(traduzirErro(e?.message) ?? "Erro ao carregar palpites.");
     }
   }
   
@@ -187,7 +188,7 @@ function Admin() {
       toast.success("Temporada encerrada e relatório baixado!");
       await rodada.refetch();
     } catch (e: any) {
-      toast.error(e?.message || "Erro ao encerrar temporada.");
+      toast.error(traduzirErro(e?.message) || "Erro ao encerrar temporada.");
     } finally {
       setOcupado(false);
     }
@@ -204,7 +205,7 @@ function Admin() {
       toast.success("Usuário excluído com sucesso.");
       await overview.refetch();
     } catch (e: any) {
-      toast.error(e?.message || "Erro ao excluir usuário.");
+      toast.error(traduzirErro(e?.message) || "Erro ao excluir usuário.");
     } finally {
       setOcupado(false);
     }
@@ -224,7 +225,7 @@ function Admin() {
       toast.success(undo ? "Remoção da rodada desfeita." : "Participante removido da rodada.");
       await overview.refetch();
     } catch (e: any) {
-      toast.error(e?.message || "Erro ao remover da rodada.");
+      toast.error(traduzirErro(e?.message) || "Erro ao remover da rodada.");
     } finally {
       setOcupado(false);
     }
@@ -244,7 +245,7 @@ function Admin() {
       toast.success(undo ? "Remoção do ranking desfeita." : "Participante removido do ranking geral.");
       await overview.refetch();
     } catch (e: any) {
-      toast.error(e?.message || "Erro ao remover do ranking.");
+      toast.error(traduzirErro(e?.message) || "Erro ao remover do ranking.");
     } finally {
       setOcupado(false);
     }

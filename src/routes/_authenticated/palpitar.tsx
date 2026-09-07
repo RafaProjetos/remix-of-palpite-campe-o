@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trophy, Users, Info } from "lucide-react";
+import { traduzirErro } from "@/lib/mensagens";
 
 export const Route = createFileRoute("/_authenticated/palpitar")({
   head: () => ({
@@ -131,7 +132,7 @@ function Palpitar() {
       }
     } catch (e: any) {
       console.error("Erro ao salvar palpite:", e);
-      toast.error(e?.message || "Não foi possível salvar o palpite. Tente novamente.");
+      toast.error(traduzirErro(e?.message) || "Não foi possível salvar o palpite. Tente novamente.");
     } finally {
       setEnviando(false);
     }
