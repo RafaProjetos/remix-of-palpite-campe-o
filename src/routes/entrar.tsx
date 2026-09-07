@@ -193,7 +193,7 @@ function Entrar() {
             <CardContent className="space-y-4">
               <div className="rounded-md border border-primary/30 bg-primary/5 p-4 text-sm">
                 <p>
-                  Agora confirme seu e-mail, pois enviamos uma mensagem de confirmação dentro dele. Ao confirmar o
+                  Agora confirme seu e-mail, pois enviamos uma mensagem de confirmação dentro dele. Encontre "Verify E-mail" e clique. Ao confirmar o
                   e-mail enviado na sua caixa de entrada o sistema te colocará de volta para realizar seu palpite
                   gratuito!!
                 </p>
