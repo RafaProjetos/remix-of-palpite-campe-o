@@ -40,18 +40,17 @@ function Regulamento() {
   const navigate = useNavigate();
   const aceitar = useServerFn(acceptTerms);
   const carregarStatus = useServerFn(getMyStatus);
-  const statusQuery = useQuery({ queryKey: ["meu-status"], queryFn: () => carregarStatus({}) });
   const [logado, setLogado] = useState(false);
+  const statusQuery = useQuery({ queryKey: ["meu-status"], queryFn: () => carregarStatus({}), enabled: logado });
   const [jaAceito, setJaAceito] = useState(false);
   const [ciente, setCiente] = useState(false);
   const [enviando, setEnviando] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (!data.session) return;
-      setLogado(true);
+    supabase.auth.getSession().then(({ data }) => {
+      setLogado(Boolean(data.session));
     });
-  }, [statusQuery.data]);
+  }, []);
 
   useEffect(() => {
     if (statusQuery.data) {
