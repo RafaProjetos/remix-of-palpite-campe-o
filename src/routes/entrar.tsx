@@ -97,7 +97,7 @@ function Entrar() {
     });
     setCarregando(false);
     if (error) {
-      toast.error(error.message);
+      toast.error(traduzirErro(error.message));
       return;
     }
     toast.success("E-mail de recuperação enviado!");
