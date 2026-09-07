@@ -63,7 +63,7 @@ function MeusPalpites() {
   const minhasApostas = useQuery({
     queryKey: ["minhas-apostas", roundId],
     queryFn: () => carregarMinhasApostas({ data: { roundId: roundId! } }),
-    enabled: Boolean(roundId),
+    enabled: Boolean(roundId) && temSessao === true,
   });
 
   const apostasRodada = (minhasApostas.data ?? []) as any[];
