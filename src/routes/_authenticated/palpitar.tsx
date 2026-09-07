@@ -173,8 +173,8 @@ function Palpitar() {
             <CardContent className="py-6 text-center">
               <p className="font-bold text-destructive sm:text-lg">
                 { rodada.data?.round?.status === "validated"
-                  ? "Rodada encerrada."
-                  : "Rodada em andamento. Fechada para novos palpites." }
+                  ? "Rodada encerrada. Aguarde a Abertura da Próxima rodada."
+                  : "Rodada em andamento. Fechada para novos palpites. Aguarde a abertura para a próxima rodada." }
               </p>
               <Button asChild className="mt-4" variant="outline">
                 <Link to="/meus-palpites">Ver meus palpites</Link>
