@@ -15,6 +15,28 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 
 const ADMIN_EMAIL = "adm@palpitedarodada.app";
 
+const MENSAGENS_PT: Array<[RegExp, string]> = [
+  [/email not confirmed/i, "E-mail não confirmado. Verifique sua caixa de entrada e confirme o cadastro."],
+  [/invalid login credentials/i, "E-mail ou senha incorretos."],
+  [/user already registered|already been registered/i, "Este e-mail já está cadastrado. Faça login ou recupere a senha."],
+  [/password should be at least (\d+)/i, "A senha deve ter pelo menos $1 caracteres."],
+  [/unable to validate email address|invalid format/i, "Informe um e-mail válido."],
+  [/email rate limit exceeded|over_email_send_rate_limit/i, "Muitas tentativas. Aguarde alguns minutos e tente novamente."],
+  [/for security purposes.*(\d+) seconds/i, "Por segurança, aguarde $1 segundos antes de tentar novamente."],
+  [/signups not allowed|signup is disabled/i, "Os cadastros estão temporariamente desativados."],
+  [/user not found/i, "Não encontramos uma conta com esse e-mail."],
+  [/token has expired|invalid token/i, "O link expirou. Solicite um novo e-mail de confirmação."],
+  [/network|failed to fetch/i, "Falha de conexão. Verifique sua internet e tente novamente."],
+];
+
+function traduzirErro(mensagem?: string) {
+  if (!mensagem) return "Ocorreu um erro. Tente novamente.";
+  for (const [padrao, texto] of MENSAGENS_PT) {
+    if (padrao.test(mensagem)) return mensagem.replace(padrao, texto);
+  }
+  return mensagem;
+}
+
 export const Route = createFileRoute("/entrar")({
   head: () => ({
     meta: [
@@ -46,6 +68,23 @@ function Entrar() {
   const [emailRecuperacao, setEmailRecuperacao] = useState("");
   const [ciente, setCiente] = useState(false);
   const [dialogoAberto, setDialogoAberto] = useState(false);
+  const [cadastroConcluido, setCadastroConcluido] = useState(false);
+  const [reenviando, setReenviando] = useState(false);
+
+  async function reenviarConfirmacao() {
+    setReenviando(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/palpitar` },
+    });
+    setReenviando(false);
+    if (error) {
+      toast.error(traduzirErro(error.message));
+      return;
+    }
+    toast.success("Enviamos novamente o e-mail de confirmação.");
+  }
 
   async function recuperarSenha() {
     if (!emailRecuperacao) {
@@ -58,7 +97,7 @@ function Entrar() {
     });
     setCarregando(false);
     if (error) {
-      toast.error(error.message);
+      toast.error(traduzirErro(error.message));
       return;
     }
     toast.success("E-mail de recuperação enviado!");
@@ -74,7 +113,7 @@ function Entrar() {
     const { error } = await supabase.auth.signInWithPassword({ email: identifier, password: senha });
     setCarregando(false);
     if (error) {
-      toast.error(error.message);
+      toast.error(traduzirErro(error.message));
       return;
     }
     navigate({ to: "/palpitar" });
@@ -114,21 +153,22 @@ function Entrar() {
     const { data, error } = await supabase.auth.signUp({
       email,
       password: senha,
-      options: { 
-        data: { 
+      options: {
+        emailRedirectTo: `${window.location.origin}/palpitar`,
+        data: {
           full_name: nome,
-          phone: telefone
-        }, 
+          phone: telefone,
+        },
       },
     });
-    
+
     if (error) {
       setCarregando(false);
-      toast.error(error.message);
+      toast.error(traduzirErro(error.message));
       return;
     }
 
-    // Se a sessão já estiver presente (auto-login), salvar o perfil
+    // Se a conta já vier confirmada (sessão ativa), salvamos o perfil
     if (data.session) {
       try {
         await aceitarTermos({ data: { fullName: nome, phone: telefone } });
@@ -137,45 +177,51 @@ function Entrar() {
       }
     }
 
-    // Tentar logar imediatamente caso o signUp não auto-logue (depende da config do projeto)
-    if (!data.session) {
-      console.log("Sem sessão após signUp, tentando login manual...");
-      const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({ 
-        email, 
-        password: senha 
-      });
-      
-      if (loginError) {
-        setCarregando(false);
-        console.error("Erro no login automático:", loginError);
-        // Se falhar o login, mas a conta foi criada, avisamos e deixamos o usuário tentar entrar manualmente
-        toast.info("Conta criada com sucesso! Por favor, entre com seu e-mail e senha abaixo.");
-        // Mudar para a aba de entrar
-        const tabsElement = document.querySelector('[role="tablist"]');
-        const entrarTab = tabsElement?.querySelector('[value="entrar"]') as HTMLElement;
-        entrarTab?.click();
-        return;
-      }
-      
-      if (!loginData.session) {
-        setCarregando(false);
-        toast.info("Conta criada com sucesso! Por favor, entre com seu e-mail e senha abaixo.");
-        return;
-      }
-
-      // Após login manual, salvar perfil
-      try {
-        await aceitarTermos({ data: { fullName: nome, phone: telefone } });
-      } catch (e) {
-        console.error("Erro ao atualizar perfil:", e);
-      }
-    }
-    
     setCarregando(false);
-    toast.success("Cadastro realizado!");
-    navigate({ to: "/regulamento" });
+    setCadastroConcluido(true);
   }
 
+  if (cadastroConcluido) {
+    return (
+      <div className="min-h-screen bg-background">
+        <SiteHeader />
+        <main className="mx-auto max-w-md px-4 py-10">
+          <Card>
+            <CardHeader>
+              <CardTitle>Confirme seu e-mail</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-md border border-primary/30 bg-primary/5 p-4 text-sm">
+                <p>
+                  Agora confirme seu e-mail, pois enviamos uma mensagem de confirmação dentro dele. Ao confirmar o
+                  e-mail enviado na sua caixa de entrada o sistema te colocará de volta para realizar seu palpite
+                  gratuito!!
+                </p>
+              </div>
+              {email && (
+                <p className="text-xs text-muted-foreground">
+                  Enviado para <strong>{email}</strong>. Não esqueça de olhar a caixa de spam ou promoções.
+                </p>
+              )}
+              <Button className="w-full" onClick={reenviarConfirmacao} disabled={reenviando}>
+                Reenviar e-mail de confirmação
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  setCadastroConcluido(false);
+                  setSenha("");
+                }}
+              >
+                Voltar para o login
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
