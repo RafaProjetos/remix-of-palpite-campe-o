@@ -181,7 +181,47 @@ function Entrar() {
     setCadastroConcluido(true);
   }
 
-
+  if (cadastroConcluido) {
+    return (
+      <div className="min-h-screen bg-background">
+        <SiteHeader />
+        <main className="mx-auto max-w-md px-4 py-10">
+          <Card>
+            <CardHeader>
+              <CardTitle>Confirme seu e-mail</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-md border border-primary/30 bg-primary/5 p-4 text-sm">
+                <p>
+                  Agora confirme seu e-mail, pois enviamos uma mensagem de confirmação dentro dele. Ao confirmar o
+                  e-mail enviado na sua caixa de entrada o sistema te colocará de volta para realizar seu palpite
+                  gratuito!!
+                </p>
+              </div>
+              {email && (
+                <p className="text-xs text-muted-foreground">
+                  Enviado para <strong>{email}</strong>. Não esqueça de olhar a caixa de spam ou promoções.
+                </p>
+              )}
+              <Button className="w-full" onClick={reenviarConfirmacao} disabled={reenviando}>
+                Reenviar e-mail de confirmação
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  setCadastroConcluido(false);
+                  setSenha("");
+                }}
+              >
+                Voltar para o login
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
