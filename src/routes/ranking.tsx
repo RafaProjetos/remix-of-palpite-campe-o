@@ -8,6 +8,7 @@ import { AlertCircle, Trophy, Users, Clock } from "lucide-react";
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { CelebracaoCampeao } from "@/components/celebracao-campeao";
 
 export const Route = createFileRoute("/ranking")({
   head: () => ({
@@ -66,9 +67,23 @@ function RankingPage() {
   const nomeDe = (r: any) => r.full_name || r.display_name || "Participante";
 
 
+  const campeao = roundRows.length > 0 ? roundRows[0] : null;
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
+      {!isLoading && (
+        <CelebracaoCampeao
+          key={`${round?.id ?? "s"}-${activeLeagueType}`}
+          roundId={round?.id ?? null}
+          roundNumber={round?.number ?? null}
+          leagueType={activeLeagueType}
+          leagueName={activeLeague?.name ?? null}
+          validado={round?.status === "validated"}
+          vencedor={campeao ? nomeDe(campeao) : null}
+          pontos={campeao?.total_points ?? null}
+        />
+      )}
       <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:py-10">
         <header className="space-y-2 text-center sm:text-left">
           <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Classificação da Rodada</h1>
