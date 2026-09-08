@@ -1,14 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { getCurrentRound, getRankings, getLeagues } from "@/lib/palpite.functions";
+import { getCurrentRound, getRankings, getLeagues, getPublicBetPicks } from "@/lib/palpite.functions";
 import { SiteHeader } from "@/components/site-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle, Trophy, Users, Clock } from "lucide-react";
+import { AlertCircle, Trophy, Users, Clock, Eye } from "lucide-react";
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { CelebracaoCampeao } from "@/components/celebracao-campeao";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/ranking")({
   head: () => ({
