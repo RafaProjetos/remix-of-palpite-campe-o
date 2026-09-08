@@ -89,6 +89,69 @@ export const getRankings = createServerFn({ method: "GET" })
     };
   });
 
+/** Palpites de um participante, visíveis a todos apenas quando a rodada está validada. */
+export const getPublicBetPicks = createServerFn({ method: "GET" })
+  .inputValidator((d: { roundId: string; leagueType: string; userId: string }) =>
+    z
+      .object({ roundId: z.string().uuid(), leagueType: z.string(), userId: z.string().uuid() })
+      .parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: round } = await supabaseAdmin
+      .from("rounds")
+      .select("id, number, status")
+      .eq("id", data.roundId)
+      .maybeSingle();
+    if (!round || round.status !== "validated") {
+      return { allowed: false as const, matches: [] as any[], picks: [] as any[], bet: null, name: null };
+    }
+
+    const { data: league } = await supabaseAdmin
+      .from("leagues")
+      .select("id, name, type")
+      .eq("type", data.leagueType as any)
+      .maybeSingle();
+    if (!league) {
+      return { allowed: false as const, matches: [] as any[], picks: [] as any[], bet: null, name: null };
+    }
+
+    const { data: bet } = await supabaseAdmin
+      .from("bets")
+      .select("id, total_points, full_hits, winner_hits, status, excluded_from_round")
+      .eq("round_id", data.roundId)
+      .eq("league_id", league.id)
+      .eq("user_id", data.userId)
+      .maybeSingle();
+    if (!bet || bet.excluded_from_round) {
+      return { allowed: true as const, matches: [] as any[], picks: [] as any[], bet: null, name: null };
+    }
+
+    const [{ data: matches }, { data: picks }, { data: profile }] = await Promise.all([
+      supabaseAdmin
+        .from("matches")
+        .select("id, position, home_team, away_team, home_logo, away_logo, home_score, away_score")
+        .eq("round_id", data.roundId)
+        .order("position"),
+      supabaseAdmin.from("bet_picks").select("*").eq("bet_id", bet.id),
+      supabaseAdmin.from("profiles").select("full_name, email").eq("id", data.userId).maybeSingle(),
+    ]);
+
+    const nome =
+      (profile?.full_name?.trim() || profile?.email?.split("@")[0] || "Apostador") as string;
+
+    return {
+      allowed: true as const,
+      leagueName: league.name,
+      roundNumber: round.number,
+      name: nome,
+      bet,
+      matches: matches ?? [],
+      picks: picks ?? [],
+    };
+  });
+
 export const ensureAdminAccount = createServerFn({ method: "POST" }).handler(async () => {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { ADMIN_EMAIL } = await import("./palpite.server");

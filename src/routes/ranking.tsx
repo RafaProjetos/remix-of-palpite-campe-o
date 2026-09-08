@@ -1,14 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { getCurrentRound, getRankings, getLeagues } from "@/lib/palpite.functions";
+import { getCurrentRound, getRankings, getLeagues, getPublicBetPicks } from "@/lib/palpite.functions";
 import { SiteHeader } from "@/components/site-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle, Trophy, Users, Clock } from "lucide-react";
+import { AlertCircle, Trophy, Users, Clock, Eye } from "lucide-react";
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { CelebracaoCampeao } from "@/components/celebracao-campeao";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/ranking")({
   head: () => ({
@@ -29,6 +30,7 @@ export const Route = createFileRoute("/ranking")({
 
 function RankingPage() {
   const [activeLeagueType, setActiveLeagueType] = useState<string>("free");
+  const [participanteAberto, setParticipanteAberto] = useState<{ id: string; nome: string } | null>(null);
   const meQuery = useQuery({
     queryKey: ["me-ranking"],
     queryFn: async () => {
@@ -68,6 +70,18 @@ function RankingPage() {
 
 
   const campeao = roundRows.length > 0 ? roundRows[0] : null;
+  const rodadaEncerrada = round?.status === "validated";
+
+  const palpitesQuery = useQuery({
+    queryKey: ["palpites-publicos", round?.id, activeLeagueType, participanteAberto?.id],
+    queryFn: () =>
+      getPublicBetPicks({
+        data: { roundId: round!.id, leagueType: activeLeagueType, userId: participanteAberto!.id },
+      }),
+    enabled: !!round?.id && !!participanteAberto?.id && rodadaEncerrada,
+  });
+  const detalhe: any = palpitesQuery.data;
+  const pickPor = (matchId: string) => (detalhe?.picks ?? []).find((p: any) => p.match_id === matchId);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -172,12 +186,28 @@ function RankingPage() {
                             </TableCell>
                             <TableCell>
                               <div className="flex flex-col min-w-0">
-                                <span className="font-medium truncate text-xs sm:text-sm">
-                                  {nomeDe(r)}
-                                  {r.user_id === myUserId && (
-                                    <span className="ml-2 text-[9px] uppercase font-bold text-primary">Você</span>
-                                  )}
-                                </span>
+                                {rodadaEncerrada ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => setParticipanteAberto({ id: r.user_id, nome: nomeDe(r) })}
+                                    className="group flex items-center gap-1 text-left min-w-0"
+                                  >
+                                    <span className="font-medium truncate text-xs sm:text-sm underline decoration-dotted underline-offset-4 group-hover:text-primary">
+                                      {nomeDe(r)}
+                                    </span>
+                                    <Eye className="h-3 w-3 shrink-0 text-muted-foreground group-hover:text-primary" />
+                                    {r.user_id === myUserId && (
+                                      <span className="text-[9px] uppercase font-bold text-primary">Você</span>
+                                    )}
+                                  </button>
+                                ) : (
+                                  <span className="font-medium truncate text-xs sm:text-sm">
+                                    {nomeDe(r)}
+                                    {r.user_id === myUserId && (
+                                      <span className="ml-2 text-[9px] uppercase font-bold text-primary">Você</span>
+                                    )}
+                                  </span>
+                                )}
                                 {r.row_position <= 10 && activeLeagueType !== 'free' && (
                                   <span className="text-[8px] sm:text-[10px] text-yellow-600 font-bold uppercase tracking-tighter">Zona de Premiação</span>
                                 )}
@@ -239,6 +269,56 @@ function RankingPage() {
           </TabsContent>
         </Tabs>
       </main>
+
+      <Dialog open={!!participanteAberto} onOpenChange={(o) => !o && setParticipanteAberto(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-base sm:text-lg">
+              Palpites de {participanteAberto?.nome}
+            </DialogTitle>
+            <DialogDescription>
+              {activeLeague?.name ?? "Liga"} · Rodada {round?.number ?? ""}
+              {detalhe?.bet ? ` · ${detalhe.bet.total_points} pts` : ""}
+            </DialogDescription>
+          </DialogHeader>
+
+          {palpitesQuery.isLoading ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">Carregando palpites...</p>
+          ) : !detalhe?.bet ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">
+              Não há palpites disponíveis para este participante nesta liga.
+            </p>
+          ) : (
+            <div className="max-h-[60vh] space-y-2 overflow-y-auto pr-1">
+              {(detalhe.matches ?? []).map((m: any) => {
+                const p = pickPor(m.id);
+                return (
+                  <div key={m.id} className="rounded-md border p-2 text-xs sm:text-sm">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="min-w-0 flex-1 truncate">{m.home_team}</span>
+                      <span className="shrink-0 font-bold">
+                        {p ? `${p.home_score} x ${p.away_score}` : "—"}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-right">{m.away_team}</span>
+                    </div>
+                    <div className="mt-1 flex items-center justify-between text-[11px] text-muted-foreground">
+                      <span>
+                        Resultado:{" "}
+                        {m.home_score !== null && m.away_score !== null
+                          ? `${m.home_score} x ${m.away_score}`
+                          : "não informado"}
+                      </span>
+                      <Badge variant={p && p.points > 0 ? "default" : "outline"} className="text-[10px]">
+                        {p ? `${p.points} pts` : "0 pts"}
+                      </Badge>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
