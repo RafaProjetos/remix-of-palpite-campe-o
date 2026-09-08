@@ -44,7 +44,7 @@ export function CelebracaoCampeao({
   }, [validado, roundId, leagueType, vencedor]);
 
   if (!vencedor) return null;
-  const cor = CORES[leagueType] ?? CORES.free;
+  const cor = CORES[leagueType] ?? CORES["free"];
 
   return (
     <Dialog open={aberto} onOpenChange={setAberto}>
