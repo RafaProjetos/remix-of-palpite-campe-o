@@ -70,6 +70,18 @@ function RankingPage() {
 
 
   const campeao = roundRows.length > 0 ? roundRows[0] : null;
+  const rodadaEncerrada = round?.status === "validated";
+
+  const palpitesQuery = useQuery({
+    queryKey: ["palpites-publicos", round?.id, activeLeagueType, participanteAberto?.id],
+    queryFn: () =>
+      getPublicBetPicks({
+        data: { roundId: round!.id, leagueType: activeLeagueType, userId: participanteAberto!.id },
+      }),
+    enabled: !!round?.id && !!participanteAberto?.id && rodadaEncerrada,
+  });
+  const detalhe: any = palpitesQuery.data;
+  const pickPor = (matchId: string) => (detalhe?.picks ?? []).find((p: any) => p.match_id === matchId);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
