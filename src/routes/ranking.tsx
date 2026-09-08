@@ -8,6 +8,7 @@ import { AlertCircle, Trophy, Users, Clock } from "lucide-react";
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { CelebracaoCampeao } from "@/components/celebracao-campeao";
 
 export const Route = createFileRoute("/ranking")({
   head: () => ({
