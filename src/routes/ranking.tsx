@@ -30,6 +30,7 @@ export const Route = createFileRoute("/ranking")({
 
 function RankingPage() {
   const [activeLeagueType, setActiveLeagueType] = useState<string>("free");
+  const [participanteAberto, setParticipanteAberto] = useState<{ id: string; nome: string } | null>(null);
   const meQuery = useQuery({
     queryKey: ["me-ranking"],
     queryFn: async () => {
