@@ -173,12 +173,28 @@ function RankingPage() {
                             </TableCell>
                             <TableCell>
                               <div className="flex flex-col min-w-0">
-                                <span className="font-medium truncate text-xs sm:text-sm">
-                                  {nomeDe(r)}
-                                  {r.user_id === myUserId && (
-                                    <span className="ml-2 text-[9px] uppercase font-bold text-primary">Você</span>
-                                  )}
-                                </span>
+                                {rodadaEncerrada ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => setParticipanteAberto({ id: r.user_id, nome: nomeDe(r) })}
+                                    className="group flex items-center gap-1 text-left min-w-0"
+                                  >
+                                    <span className="font-medium truncate text-xs sm:text-sm underline decoration-dotted underline-offset-4 group-hover:text-primary">
+                                      {nomeDe(r)}
+                                    </span>
+                                    <Eye className="h-3 w-3 shrink-0 text-muted-foreground group-hover:text-primary" />
+                                    {r.user_id === myUserId && (
+                                      <span className="text-[9px] uppercase font-bold text-primary">Você</span>
+                                    )}
+                                  </button>
+                                ) : (
+                                  <span className="font-medium truncate text-xs sm:text-sm">
+                                    {nomeDe(r)}
+                                    {r.user_id === myUserId && (
+                                      <span className="ml-2 text-[9px] uppercase font-bold text-primary">Você</span>
+                                    )}
+                                  </span>
+                                )}
                                 {r.row_position <= 10 && activeLeagueType !== 'free' && (
                                   <span className="text-[8px] sm:text-[10px] text-yellow-600 font-bold uppercase tracking-tighter">Zona de Premiação</span>
                                 )}
