@@ -269,6 +269,56 @@ function RankingPage() {
           </TabsContent>
         </Tabs>
       </main>
+
+      <Dialog open={!!participanteAberto} onOpenChange={(o) => !o && setParticipanteAberto(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-base sm:text-lg">
+              Palpites de {participanteAberto?.nome}
+            </DialogTitle>
+            <DialogDescription>
+              {activeLeague?.name ?? "Liga"} · Rodada {round?.number ?? ""}
+              {detalhe?.bet ? ` · ${detalhe.bet.total_points} pts` : ""}
+            </DialogDescription>
+          </DialogHeader>
+
+          {palpitesQuery.isLoading ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">Carregando palpites...</p>
+          ) : !detalhe?.bet ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">
+              Não há palpites disponíveis para este participante nesta liga.
+            </p>
+          ) : (
+            <div className="max-h-[60vh] space-y-2 overflow-y-auto pr-1">
+              {(detalhe.matches ?? []).map((m: any) => {
+                const p = pickPor(m.id);
+                return (
+                  <div key={m.id} className="rounded-md border p-2 text-xs sm:text-sm">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="min-w-0 flex-1 truncate">{m.home_team}</span>
+                      <span className="shrink-0 font-bold">
+                        {p ? `${p.home_score} x ${p.away_score}` : "—"}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-right">{m.away_team}</span>
+                    </div>
+                    <div className="mt-1 flex items-center justify-between text-[11px] text-muted-foreground">
+                      <span>
+                        Resultado:{" "}
+                        {m.home_score !== null && m.away_score !== null
+                          ? `${m.home_score} x ${m.away_score}`
+                          : "não informado"}
+                      </span>
+                      <Badge variant={p && p.points > 0 ? "default" : "outline"} className="text-[10px]">
+                        {p ? `${p.points} pts` : "0 pts"}
+                      </Badge>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
