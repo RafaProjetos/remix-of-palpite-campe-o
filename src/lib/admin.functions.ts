@@ -56,7 +56,10 @@ export const adminOverview = createServerFn({ method: "GET" })
     return {
       participants: (bets.data ?? []).map((b: any) => ({
         ...b,
-        full_name: byId.get(b.user_id)?.full_name ?? "Apostador",
+        full_name:
+          byId.get(b.user_id)?.full_name?.trim() ||
+          byId.get(b.user_id)?.email?.split("@")[0] ||
+          "Nome não informado",
         email: byId.get(b.user_id)?.email ?? "",
         phone: byId.get(b.user_id)?.phone ?? "",
         excluded_from_ranking: b.excluded_from_ranking || rankingExcluded.includes(b.user_id),

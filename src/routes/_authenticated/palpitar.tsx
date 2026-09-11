@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { getCurrentRound, getMyBet, getMyStatus, saveBet, startPayment, getLeagues, getLeagueStats } from "@/lib/palpite.functions";
+import { getCurrentRound, getMyBet, saveBet, startPayment, getLeagues, getLeagueStats } from "@/lib/palpite.functions";
 import { useNavigate } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
 import { TeamBadge } from "@/components/team-badge";
@@ -34,7 +34,6 @@ function Palpitar() {
   const navigate = useNavigate();
   const carregarRodada = useServerFn(getCurrentRound);
   const carregarAposta = useServerFn(getMyBet);
-  const carregarStatus = useServerFn(getMyStatus);
   const carregarLigas = useServerFn(getLeagues);
   const carregarLeagueStats = useServerFn(getLeagueStats);
   const salvar = useServerFn(saveBet);
@@ -68,11 +67,6 @@ function Palpitar() {
   });
 
   const temSessao = useSessao();
-  const status = useQuery({
-    queryKey: ["meu-status"],
-    queryFn: () => carregarStatus({}),
-    enabled: temSessao === true,
-  });
   const roundId = rodada.data?.round?.id as string | undefined;
 
   const aposta = useQuery({
@@ -102,8 +96,6 @@ function Palpitar() {
 
   const matches = (rodada.data?.matches ?? []) as any[];
   const pago = aposta.data?.bet?.status === "paid";
-  const aceitou = Boolean(status.data?.profile?.terms_accepted_at);
-
   const closesAt = rodada.data?.round?.closes_at ? new Date(rodada.data.round.closes_at) : null;
   const isClosed = !!(rodada.data?.round?.status !== "open" || (closesAt && closesAt < new Date()));
 
@@ -185,20 +177,6 @@ function Palpitar() {
               </p>
               <Button asChild className="mt-4" variant="outline">
                 <Link to="/meus-palpites">Ver meus palpites</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {!isClosed && !aceitou && (
-          <Card className="border-primary/50 bg-primary/5">
-            <CardContent className="flex flex-col items-center justify-center gap-4 py-8 text-center">
-              <div className="space-y-2">
-                <h2 className="text-xl font-bold">Termos de Uso e Regulamento</h2>
-                <p className="text-muted-foreground">Você precisa aceitar os termos antes de começar a palpitar.</p>
-              </div>
-              <Button asChild size="lg" className="w-full sm:w-auto">
-                <Link to="/regulamento">Ler e aceitar o regulamento</Link>
               </Button>
             </CardContent>
           </Card>
@@ -339,7 +317,7 @@ function Palpitar() {
                           <Input
                             className="h-7 w-8 px-0.5 text-center text-xs sm:h-10 sm:w-12 sm:px-3 sm:text-base"
                             inputMode="numeric"
-                            disabled={pago || !aceitou || isClosed}
+                            disabled={pago || isClosed}
                             value={placares[matchId]?.home ?? ""}
                             onChange={(e) => setPlacar(matchId, "home", e.target.value)}
                           />
@@ -347,7 +325,7 @@ function Palpitar() {
                           <Input
                             className="h-7 w-8 px-0.5 text-center text-xs sm:h-10 sm:w-12 sm:px-3 sm:text-base"
                             inputMode="numeric"
-                            disabled={pago || !aceitou || isClosed}
+                            disabled={pago || isClosed}
                             value={placares[matchId]?.away ?? ""}
                             onChange={(e) => setPlacar(matchId, "away", e.target.value)}
                           />
@@ -393,7 +371,7 @@ function Palpitar() {
                       size="lg"
                       className="w-full"
                       onClick={salvarPalpite}
-                      disabled={enviando || !aceitou || isClosed || fixturesQuery.isLoading}
+                      disabled={enviando || isClosed || fixturesQuery.isLoading}
                     >
                       {enviando ? "Processando..." : activeLeagueType === 'free' ? "Salvar Palpite Gratuito" : `Participar da Liga (R$ ${Number(activeLeague?.entry_fee).toFixed(2)})`}
                     </Button>

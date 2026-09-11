@@ -64,7 +64,7 @@ function LeagueRankingList({ roundId, leagueType }: { roundId: string | null; le
               {i + 1}
             </span>
             <span className="text-sm font-bold truncate max-w-[120px]">
-              {r.full_name}
+              {String(r.full_name ?? "").trim()}
             </span>
           </div>
           <Badge variant="secondary" className="font-black text-primary">

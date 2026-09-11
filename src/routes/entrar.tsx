@@ -138,6 +138,7 @@ function Entrar() {
         data: {
           full_name: nome,
           phone: telefone,
+          terms_accepted_at: new Date().toISOString(),
         },
       },
     });
