@@ -128,7 +128,7 @@ export const getPublicBetPicks = createServerFn({ method: "GET" })
       return { allowed: true as const, matches: [] as any[], picks: [] as any[], bet: null, name: null };
     }
 
-    const [{ data: matches }, { data: picks }, { data: profile }] = await Promise.all([
+    const [{ data: matches }, { data: picks }, { data: profile }, authUser] = await Promise.all([
       supabaseAdmin
         .from("matches")
         .select("id, position, home_team, away_team, home_logo, away_logo, home_score, away_score")
@@ -136,10 +136,17 @@ export const getPublicBetPicks = createServerFn({ method: "GET" })
         .order("position"),
       supabaseAdmin.from("bet_picks").select("*").eq("bet_id", bet.id),
       supabaseAdmin.from("profiles").select("full_name, email").eq("id", data.userId).maybeSingle(),
+      supabaseAdmin.auth.admin.getUserById(data.userId),
     ]);
 
-    const nome =
-      (profile?.full_name?.trim() || profile?.email?.split("@")[0] || "Apostador") as string;
+    const account = authUser.data.user;
+    const nome = (
+      profile?.full_name?.trim() ||
+      profile?.email?.split("@")[0] ||
+      String(account?.user_metadata?.["full_name"] ?? account?.user_metadata?.["name"] ?? "").trim() ||
+      account?.email?.split("@")[0] ||
+      "Nome não informado"
+    ) as string;
 
     return {
       allowed: true as const,
@@ -197,19 +204,42 @@ export const getMyStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
+    const claims = context.claims as Record<string, any>;
+    const metadata = (claims["user_metadata"] ?? {}) as Record<string, unknown>;
+    const accountEmail = typeof claims["email"] === "string" ? claims["email"].trim() : "";
+    const metadataName = [metadata["full_name"], metadata["name"]]
+      .find((value) => typeof value === "string" && value.trim().length > 0);
+    const accountName = typeof metadataName === "string" ? metadataName.trim() : (accountEmail.split("@")[0] ?? "");
+    const acceptedAt = typeof metadata["terms_accepted_at"] === "string" ? metadata["terms_accepted_at"] : null;
     let profileData = (await supabase.from("profiles").select("*").eq("id", userId).maybeSingle()).data;
     
-    // Se o perfil não existir, tenta criar
+    // Recupera automaticamente perfis antigos ou incompletos com os dados da conta.
     if (!profileData) {
       const { data: newProfile, error: insertError } = await supabase
         .from("profiles")
-        .insert({ id: userId })
+        .insert({ id: userId, full_name: accountName, email: accountEmail, terms_accepted_at: acceptedAt })
         .select("*")
         .maybeSingle();
       
       if (!insertError && newProfile) {
         profileData = newProfile;
       }
+    } else if (
+      (!profileData.full_name?.trim() && accountName) ||
+      (!profileData.email?.trim() && accountEmail) ||
+      (!profileData.terms_accepted_at && acceptedAt)
+    ) {
+      const { data: repairedProfile } = await supabase
+        .from("profiles")
+        .update({
+          full_name: profileData.full_name?.trim() || accountName,
+          email: profileData.email?.trim() || accountEmail,
+          terms_accepted_at: profileData.terms_accepted_at || acceptedAt,
+        })
+        .eq("id", userId)
+        .select("*")
+        .maybeSingle();
+      profileData = repairedProfile ?? profileData;
     }
 
     const roles = await supabase.from("user_roles").select("role").eq("user_id", userId);
@@ -294,9 +324,31 @@ export const saveBet = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
+    const claims = context.claims as Record<string, any>;
+    const metadata = (claims["user_metadata"] ?? {}) as Record<string, unknown>;
+    const accountEmail = typeof claims["email"] === "string" ? claims["email"].trim() : "";
+    const metadataName = [metadata["full_name"], metadata["name"]]
+      .find((value) => typeof value === "string" && value.trim().length > 0);
+    const accountName = typeof metadataName === "string" ? metadataName.trim() : (accountEmail.split("@")[0] ?? "");
+    const acceptedAt = typeof metadata["terms_accepted_at"] === "string" ? metadata["terms_accepted_at"] : null;
 
-    const profile = await supabase.from("profiles").select("terms_accepted_at").eq("id", userId).maybeSingle();
-    if (!profile.data?.terms_accepted_at) throw new Error("Aceite o regulamento antes de palpitar.");
+    const existingProfile = await supabase.from("profiles").select("full_name, email, terms_accepted_at").eq("id", userId).maybeSingle();
+    if (!existingProfile.data) {
+      const createdProfile = await supabase.from("profiles").insert({
+        id: userId,
+        full_name: accountName,
+        email: accountEmail,
+        terms_accepted_at: acceptedAt,
+      });
+      if (createdProfile.error) throw new Error(createdProfile.error.message);
+    } else if (!existingProfile.data.full_name.trim() || !existingProfile.data.email.trim()) {
+      const repairedProfile = await supabase.from("profiles").update({
+        full_name: existingProfile.data.full_name.trim() || accountName,
+        email: existingProfile.data.email.trim() || accountEmail,
+        terms_accepted_at: existingProfile.data.terms_accepted_at || acceptedAt,
+      }).eq("id", userId);
+      if (repairedProfile.error) throw new Error(repairedProfile.error.message);
+    }
 
     const round = await supabase.from("rounds").select("*").eq("id", data.roundId).maybeSingle();
     if (!round.data) throw new Error("Rodada não encontrada.");
