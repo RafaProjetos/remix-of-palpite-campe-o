@@ -129,9 +129,12 @@ function Entrar() {
       toast.error("Você precisa aceitar os termos para se cadastrar.");
       return;
     }
+
+    const emailNormalizado = email.trim().toLowerCase();
+
     setCarregando(true);
     const { data, error } = await supabase.auth.signUp({
-      email,
+      email: emailNormalizado,
       password: senha,
       options: {
         emailRedirectTo: `${window.location.origin}/palpitar`,
@@ -145,9 +148,23 @@ function Entrar() {
 
     if (error) {
       setCarregando(false);
-      toast.error(traduzirErro(error.message));
+      const mensagem = error.message.toLowerCase().includes("already registered")
+        || error.message.toLowerCase().includes("already exists")
+        ? "Este e-mail já existe cadastrado."
+        : traduzirErro(error.message);
+      toast.error(mensagem);
       return;
     }
+
+    // Com confirmação de e-mail habilitada, o Supabase oculta contas existentes
+    // retornando um usuário sem identidades, em vez de retornar um erro explícito.
+    if (data.user && (data.user.identities?.length ?? 0) === 0) {
+      setCarregando(false);
+      toast.error("Este e-mail já existe cadastrado.");
+      return;
+    }
+
+    setEmail(emailNormalizado);
 
     // Se a conta já vier confirmada (sessão ativa), salvamos o perfil
     if (data.session) {
