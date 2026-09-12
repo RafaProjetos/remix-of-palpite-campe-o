@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -50,6 +50,56 @@ function Entrar() {
   const [dialogoAberto, setDialogoAberto] = useState(false);
   const [cadastroConcluido, setCadastroConcluido] = useState(false);
   const [reenviando, setReenviando] = useState(false);
+  const [modoRecuperacao, setModoRecuperacao] = useState(false);
+  const [recuperacaoPronta, setRecuperacaoPronta] = useState(false);
+  const [linkRecuperacaoInvalido, setLinkRecuperacaoInvalido] = useState(false);
+  const [novaSenha, setNovaSenha] = useState("");
+  const [confirmacaoNovaSenha, setConfirmacaoNovaSenha] = useState("");
+  const [mostrarNovaSenha, setMostrarNovaSenha] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const currentUrl = new URL(window.location.href);
+    const query = currentUrl.searchParams;
+    const hash = new URLSearchParams(currentUrl.hash.replace(/^#/, ""));
+    const urlDeRecuperacao =
+      query.has("code") ||
+      query.get("type") === "recovery" ||
+      hash.get("type") === "recovery" ||
+      query.has("error") ||
+      hash.has("error");
+    const urlComErro = query.has("error") || hash.has("error");
+    let ativo = true;
+
+    if (urlDeRecuperacao) setModoRecuperacao(true);
+    if (urlComErro) setLinkRecuperacaoInvalido(true);
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!ativo) return;
+
+      if (event === "PASSWORD_RECOVERY") {
+        setModoRecuperacao(true);
+        setRecuperacaoPronta(Boolean(session));
+        setLinkRecuperacaoInvalido(!session);
+      }
+    });
+
+    if (urlDeRecuperacao && !urlComErro) {
+      void supabase.auth.getSession().then(({ data, error }) => {
+        if (!ativo) return;
+        setRecuperacaoPronta(Boolean(data.session));
+        setLinkRecuperacaoInvalido(Boolean(error) || !data.session);
+      });
+    }
+
+    return () => {
+      ativo = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   async function reenviarConfirmacao() {
     setReenviando(true);
@@ -67,12 +117,14 @@ function Entrar() {
   }
 
   async function recuperarSenha() {
-    if (!emailRecuperacao) {
+    const emailNormalizado = emailRecuperacao.trim().toLowerCase();
+
+    if (!emailNormalizado) {
       toast.error("Informe seu e-mail para recuperação.");
       return;
     }
     setCarregando(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(emailRecuperacao, {
+    const { error } = await supabase.auth.resetPasswordForEmail(emailNormalizado, {
       redirectTo: `${window.location.origin}/entrar`,
     });
     setCarregando(false);
@@ -80,8 +132,46 @@ function Entrar() {
       toast.error(traduzirErro(error.message));
       return;
     }
-    toast.success("E-mail de recuperação enviado!");
+    toast.success("E-mail de recuperação enviado! Verifique também a caixa de spam.");
+    setEmailRecuperacao(emailNormalizado);
     setDialogoAberto(false);
+  }
+
+  async function atualizarSenhaRecuperada() {
+    if (!recuperacaoPronta) {
+      toast.error("O link de recuperação é inválido ou expirou. Solicite um novo link.");
+      return;
+    }
+
+    if (novaSenha.length < 6) {
+      toast.error("A nova senha deve ter pelo menos 6 caracteres.");
+      return;
+    }
+
+    if (novaSenha !== confirmacaoNovaSenha) {
+      toast.error("A confirmação da senha não corresponde à nova senha.");
+      return;
+    }
+
+    setCarregando(true);
+    const { error } = await supabase.auth.updateUser({ password: novaSenha });
+
+    if (error) {
+      setCarregando(false);
+      toast.error(traduzirErro(error.message));
+      return;
+    }
+
+    await supabase.auth.signOut({ scope: "local" });
+    setCarregando(false);
+    setModoRecuperacao(false);
+    setRecuperacaoPronta(false);
+    setLinkRecuperacaoInvalido(false);
+    setNovaSenha("");
+    setConfirmacaoNovaSenha("");
+    setSenha("");
+    window.history.replaceState({}, document.title, window.location.pathname);
+    toast.success("Senha alterada com sucesso. Entre usando a nova senha.");
   }
 
   async function entrar() {
@@ -177,6 +267,72 @@ function Entrar() {
 
     setCarregando(false);
     setCadastroConcluido(true);
+  }
+
+  if (modoRecuperacao) {
+    return (
+      <div className="min-h-screen bg-background">
+        <SiteHeader />
+        <main className="mx-auto max-w-md px-4 py-10">
+          <Card>
+            <CardHeader>
+              <CardTitle>Definir nova senha</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {linkRecuperacaoInvalido ? (
+                <>
+                  <div className="rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm">
+                    Este link de recuperação é inválido ou expirou. Volte ao login e solicite um novo e-mail.
+                  </div>
+                  <Button
+                    className="w-full"
+                    onClick={() => {
+                      setModoRecuperacao(false);
+                      setLinkRecuperacaoInvalido(false);
+                      window.history.replaceState({}, document.title, window.location.pathname);
+                    }}
+                  >
+                    Solicitar novo link
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    Informe e confirme a nova senha que será usada para acessar sua conta.
+                  </p>
+                  <Campo
+                    label="Nova senha"
+                    value={novaSenha}
+                    onChange={setNovaSenha}
+                    type="password"
+                    onToggleShow={() => setMostrarNovaSenha(!mostrarNovaSenha)}
+                    showValue={mostrarNovaSenha}
+                  />
+                  <Campo
+                    label="Confirmar nova senha"
+                    value={confirmacaoNovaSenha}
+                    onChange={setConfirmacaoNovaSenha}
+                    type="password"
+                    onToggleShow={() => setMostrarNovaSenha(!mostrarNovaSenha)}
+                    showValue={mostrarNovaSenha}
+                  />
+                  {!recuperacaoPronta && (
+                    <p className="text-center text-xs text-muted-foreground">Validando o link de recuperação...</p>
+                  )}
+                  <Button
+                    className="w-full"
+                    onClick={atualizarSenhaRecuperada}
+                    disabled={carregando || !recuperacaoPronta}
+                  >
+                    Salvar nova senha
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
   }
 
   if (cadastroConcluido) {
