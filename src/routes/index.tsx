@@ -191,7 +191,7 @@ function Home() {
           </CardContent>
           <div className="p-6 border-t bg-muted/10">
             <Button asChild className="w-full h-12 font-bold text-lg" size="lg">
-              <Link to="/palpitar">Faça seus palpites Gratuitos Agora</Link>
+              <Link to="/palpitar">Registre Seu Palpite Gratuito Agora</Link>
             </Button>
           </div>
         </Card>
