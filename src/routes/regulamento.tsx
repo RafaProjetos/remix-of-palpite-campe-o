@@ -8,8 +8,6 @@ import { acceptTerms, getMyStatus } from "@/lib/palpite.functions";
 import { SiteHeader } from "@/components/site-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { traduzirErro } from "@/lib/mensagens";
 
@@ -89,27 +87,44 @@ function Regulamento() {
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-muted-foreground sm:text-base">
             <p>
-              O <strong>Palpite da Rodada</strong> é um concurso de prognósticos baseado nas partidas da Série A do Brasileirão 2026. 
+              O <strong>Palpite da Rodada</strong> é um concurso de prognósticos baseado nas partidas da Série A do Brasileirão 2026.
               Em cada rodada, são selecionados 10 confrontos para a realização dos palpites.
             </p>
-            <ul className="list-disc pl-5 space-y-2">
+            <ul className="list-disc space-y-2 pl-5">
               <li><strong>Liga Free:</strong> Participação gratuita destinada à diversão e acompanhamento do ranking geral entre amigos.</li>
               <li><strong>Ligas Pagas (Bronze, Prata e Ouro):</strong> Competições com taxas de adesão de R$ 5, R$ 20 ou R$ 50. O montante arrecadado é distribuído entre os <strong>10 primeiros colocados</strong> da rodada.</li>
               <li><strong>Critérios de Desempate:</strong> Caso ocorra igualdade na pontuação, serão considerados, sucessivamente, o número de placares exatos, o acerto do vencedor da partida e a ordem cronológica do registro do palpite.</li>
               <li><strong>Distribuição de Prêmios:</strong> Deduzida a taxa administrativa de 10%, a totalidade do pote líquido é destinada à premiação dos participantes.</li>
               <li><strong>Privacidade e Segurança:</strong> Suas informações são utilizadas estritamente para identificação de apostas e processamento de premiações via Pix.</li>
             </ul>
-            <div className="pt-4 border-t mt-4">
-              <p className="text-sm font-medium text-foreground mb-2">Para consultar o documento completo, faça o download abaixo:</p>
-              <a 
-                href="/docs/regulamento.pdf" 
-                download 
-                className="inline-flex items-center gap-2 text-primary hover:underline font-semibold bg-primary/5 px-4 py-2 rounded-lg transition-colors hover:bg-primary/10"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-                Regulamento Oficial V2 (PDF)
-              </a>
-            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl">Regulamento Oficial V2</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 p-3 sm:p-6">
+            <p className="text-sm text-muted-foreground sm:text-base">
+              O documento completo está disponível abaixo. Você pode consultá-lo diretamente nesta página ou fazer o download do PDF.
+            </p>
+            <iframe
+              src="/docs/regulamento.pdf#view=FitH"
+              title="Regulamento Oficial V2"
+              className="h-[70vh] min-h-[520px] w-full rounded-lg border border-border bg-muted"
+            />
+            <p className="text-xs text-muted-foreground">
+              Se o visualizador não carregar no seu dispositivo, use o link abaixo para abrir ou baixar o documento.
+            </p>
+            <a
+              href="/docs/regulamento.pdf"
+              target="_blank"
+              rel="noreferrer"
+              download
+              className="inline-flex items-center gap-2 rounded-lg bg-primary/5 px-4 py-2 font-semibold text-primary transition-colors hover:bg-primary/10 hover:underline"
+            >
+              Abrir ou baixar o Regulamento Oficial V2 (PDF)
+            </a>
           </CardContent>
         </Card>
 
@@ -125,8 +140,7 @@ function Regulamento() {
               </div>
             ))}
             <p className="pt-2 text-xs text-muted-foreground sm:text-sm">
-              O placar exato vale 30 pontos e substitui os demais critérios. Os outros critérios podem ser
-              somados entre si no mesmo jogo.
+              O placar exato vale 30 pontos e substitui os demais critérios. Os outros critérios podem ser somados entre si no mesmo jogo.
             </p>
           </CardContent>
         </Card>
@@ -141,26 +155,26 @@ function Regulamento() {
             </p>
 
             {!logado && (
-              <p className="rounded-lg bg-muted p-3 text-sm sm:text-base font-medium">
+              <p className="rounded-lg bg-muted p-3 text-sm font-medium sm:text-base">
                 Por favor, realize o login ou crie uma conta para registrar o aceite do regulamento.
               </p>
             )}
 
             {logado && jaAceito && (
-              <p className="rounded-lg bg-primary/10 p-3 text-sm font-semibold text-primary sm:text-base text-center">
+              <p className="rounded-lg bg-primary/10 p-3 text-center text-sm font-semibold text-primary sm:text-base">
                 Você já aceitou o regulamento e está habilitado a realizar seus palpites. Boa sorte!
               </p>
             )}
 
             {logado && !jaAceito && (
               <div className="space-y-6">
-                <label className="flex items-start gap-3 text-sm sm:text-base cursor-pointer">
+                <label className="flex cursor-pointer items-start gap-3 text-sm sm:text-base">
                   <Checkbox checked={ciente} onCheckedChange={(v) => setCiente(Boolean(v))} className="mt-1" />
                   <span className="font-medium">
                     Li e concordo com os termos do regulamento e autorizo o tratamento dos meus dados para as finalidades descritas.
                   </span>
                 </label>
-                <Button onClick={confirmar} disabled={enviando} className="w-full sm:w-auto font-semibold py-6">
+                <Button onClick={confirmar} disabled={enviando} className="w-full py-6 font-semibold sm:w-auto">
                   {enviando ? "Processando..." : "Confirmar Aceite do Regulamento"}
                 </Button>
               </div>
