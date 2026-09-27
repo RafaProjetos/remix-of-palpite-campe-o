@@ -71,13 +71,6 @@ export function SiteHeader() {
       >
         Regulamento
       </Link>
-      <Link 
-        to="/privacidade" 
-        className={`rounded-md px-3 py-2 hover:bg-muted ${mobile ? "text-lg w-full" : ""}`}
-        onClick={() => mobile && setOpen(false)}
-      >
-        Privacidade
-      </Link>
       {status.data?.isAdmin && (
         <Link 
           to="/admin" 
