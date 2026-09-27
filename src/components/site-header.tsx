@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getMyStatus } from "@/lib/palpite.functions";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import logoAsset from "@/assets/logo.asset.json";
 import { RoundDeadlineBar } from "@/components/round-deadline-bar";
@@ -71,6 +71,13 @@ export function SiteHeader() {
       >
         Regulamento
       </Link>
+      <Link 
+        to="/privacidade" 
+        className={`rounded-md px-3 py-2 hover:bg-muted ${mobile ? "text-lg w-full" : ""}`}
+        onClick={() => mobile && setOpen(false)}
+      >
+        Privacidade
+      </Link>
       {status.data?.isAdmin && (
         <Link 
           to="/admin" 
@@ -91,8 +98,7 @@ export function SiteHeader() {
           <span className="sr-only">Palpite da Rodada</span>
         </Link>
 
-        {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center gap-1 text-sm">
+        <nav className="hidden items-center gap-1 text-sm md:flex">
           <NavLinks />
           <div className="ml-2">
             {email ? (
@@ -112,7 +118,6 @@ export function SiteHeader() {
           </div>
         </nav>
 
-        {/* Mobile Nav */}
         <div className="md:hidden">
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
@@ -121,13 +126,13 @@ export function SiteHeader() {
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-[80%] p-6">
-              <SheetTitle className="text-left font-logo text-xl mb-6">Menu</SheetTitle>
+              <SheetTitle className="mb-6 text-left font-logo text-xl">Menu</SheetTitle>
               <nav className="flex flex-col gap-4">
                 <NavLinks mobile />
                 <hr className="my-2 border-border" />
                 {email ? (
                   <div className="flex flex-col gap-2">
-                    <span className="px-3 py-2 text-sm font-medium text-muted-foreground border-b border-border mb-2">
+                    <span className="mb-2 border-b border-border px-3 py-2 text-sm font-medium text-muted-foreground">
                       Usuário: {email.split('@')[0]}
                     </span>
                     <Button variant="outline" className="w-full justify-start" onClick={sair}>
