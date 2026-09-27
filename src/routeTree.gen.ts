@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as PagamentoRouteImport } from './routes/pagamento'
 import { Route as RankingRouteImport } from './routes/ranking'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as RegulamentoRouteImport } from './routes/regulamento'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedMeusPalpitesRouteImport } from './routes/_authenticated/meus-palpites'
@@ -43,6 +44,11 @@ const PagamentoRoute = PagamentoRouteImport.update({
 const RankingRoute = RankingRouteImport.update({
   id: '/ranking',
   path: '/ranking',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegulamentoRoute = RegulamentoRouteImport.update({
@@ -83,6 +89,7 @@ export interface FileRoutesByFullPath {
   '/entrar': typeof EntrarRoute
   '/pagamento': typeof PagamentoRoute
   '/ranking': typeof RankingRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/regulamento': typeof RegulamentoRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/meus-palpites': typeof AuthenticatedMeusPalpitesRoute
@@ -95,6 +102,7 @@ export interface FileRoutesByTo {
   '/entrar': typeof EntrarRoute
   '/pagamento': typeof PagamentoRoute
   '/ranking': typeof RankingRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/regulamento': typeof RegulamentoRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/meus-palpites': typeof AuthenticatedMeusPalpitesRoute
@@ -109,6 +117,7 @@ export interface FileRoutesById {
   '/entrar': typeof EntrarRoute
   '/pagamento': typeof PagamentoRoute
   '/ranking': typeof RankingRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/regulamento': typeof RegulamentoRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/meus-palpites': typeof AuthenticatedMeusPalpitesRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/pagamento'
     | '/ranking'
+    | '/privacidade'
     | '/regulamento'
     | '/admin'
     | '/meus-palpites'
@@ -135,6 +145,7 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/pagamento'
     | '/ranking'
+    | '/privacidade'
     | '/regulamento'
     | '/admin'
     | '/meus-palpites'
@@ -148,6 +159,7 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/pagamento'
     | '/ranking'
+    | '/privacidade'
     | '/regulamento'
     | '/_authenticated/admin'
     | '/_authenticated/meus-palpites'
@@ -162,6 +174,7 @@ export interface RootRouteChildren {
   EntrarRoute: typeof EntrarRoute
   PagamentoRoute: typeof PagamentoRoute
   RankingRoute: typeof RankingRoute
+  PrivacidadeRoute: typeof PrivacidadeRoute
   RegulamentoRoute: typeof RegulamentoRoute
   ApiPublicGetFixturesRoute: typeof ApiPublicGetFixturesRoute
   ApiPublicWebhooksMercadopagoRoute: typeof ApiPublicWebhooksMercadopagoRoute
@@ -202,6 +215,13 @@ declare module '@tanstack/react-router' {
       path: '/ranking'
       fullPath: '/ranking'
       preLoaderRoute: typeof RankingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/regulamento': {
@@ -270,6 +290,7 @@ const rootRouteChildren: RootRouteChildren = {
   EntrarRoute: EntrarRoute,
   PagamentoRoute: PagamentoRoute,
   RankingRoute: RankingRoute,
+  PrivacidadeRoute: PrivacidadeRoute,
   RegulamentoRoute: RegulamentoRoute,
   ApiPublicGetFixturesRoute: ApiPublicGetFixturesRoute,
   ApiPublicWebhooksMercadopagoRoute: ApiPublicWebhooksMercadopagoRoute,
