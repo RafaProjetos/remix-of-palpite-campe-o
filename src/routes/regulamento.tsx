@@ -106,24 +106,14 @@ function Regulamento() {
           </CardHeader>
           <CardContent className="space-y-4 p-3 sm:p-6">
             <p className="text-sm text-muted-foreground sm:text-base">
-              O documento completo está disponível abaixo. Você pode consultá-lo diretamente nesta página ou fazer o download do PDF.
-            </p>
-            <iframe
-              src="/docs/regulamento.pdf#view=FitH"
-              title="Regulamento Oficial V2"
-              className="h-[70vh] min-h-[520px] w-full rounded-lg border border-border bg-muted"
-            />
-            <p className="text-xs text-muted-foreground">
-              Se o visualizador não carregar no seu dispositivo, use o link abaixo para abrir ou baixar o documento.
+              Faça o download do documento completo do regulamento oficial para consultar as regras detalhadas.
             </p>
             <a
               href="/docs/regulamento.pdf"
-              target="_blank"
-              rel="noreferrer"
               download
               className="inline-flex items-center gap-2 rounded-lg bg-primary/5 px-4 py-2 font-semibold text-primary transition-colors hover:bg-primary/10 hover:underline"
             >
-              Abrir ou baixar o Regulamento Oficial V2 (PDF)
+              Baixar o Regulamento Oficial V2 (PDF)
             </a>
           </CardContent>
         </Card>
