@@ -13,8 +13,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as PagamentoRouteImport } from './routes/pagamento'
-import { Route as RankingRouteImport } from './routes/ranking'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
+import { Route as RankingRouteImport } from './routes/ranking'
 import { Route as RegulamentoRouteImport } from './routes/regulamento'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedMeusPalpitesRouteImport } from './routes/_authenticated/meus-palpites'
@@ -41,14 +41,14 @@ const PagamentoRoute = PagamentoRouteImport.update({
   path: '/pagamento',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RankingRoute = RankingRouteImport.update({
-  id: '/ranking',
-  path: '/ranking',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PrivacidadeRoute = PrivacidadeRouteImport.update({
   id: '/privacidade',
   path: '/privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RankingRoute = RankingRouteImport.update({
+  id: '/ranking',
+  path: '/ranking',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegulamentoRoute = RegulamentoRouteImport.update({
@@ -88,8 +88,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/entrar': typeof EntrarRoute
   '/pagamento': typeof PagamentoRoute
-  '/ranking': typeof RankingRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/ranking': typeof RankingRoute
   '/regulamento': typeof RegulamentoRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/meus-palpites': typeof AuthenticatedMeusPalpitesRoute
@@ -101,8 +101,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/entrar': typeof EntrarRoute
   '/pagamento': typeof PagamentoRoute
-  '/ranking': typeof RankingRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/ranking': typeof RankingRoute
   '/regulamento': typeof RegulamentoRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/meus-palpites': typeof AuthenticatedMeusPalpitesRoute
@@ -116,8 +116,8 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/entrar': typeof EntrarRoute
   '/pagamento': typeof PagamentoRoute
-  '/ranking': typeof RankingRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/ranking': typeof RankingRoute
   '/regulamento': typeof RegulamentoRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/meus-palpites': typeof AuthenticatedMeusPalpitesRoute
@@ -131,8 +131,8 @@ export interface FileRouteTypes {
     | '/'
     | '/entrar'
     | '/pagamento'
-    | '/ranking'
     | '/privacidade'
+    | '/ranking'
     | '/regulamento'
     | '/admin'
     | '/meus-palpites'
@@ -144,8 +144,8 @@ export interface FileRouteTypes {
     | '/'
     | '/entrar'
     | '/pagamento'
-    | '/ranking'
     | '/privacidade'
+    | '/ranking'
     | '/regulamento'
     | '/admin'
     | '/meus-palpites'
@@ -158,8 +158,8 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/entrar'
     | '/pagamento'
-    | '/ranking'
     | '/privacidade'
+    | '/ranking'
     | '/regulamento'
     | '/_authenticated/admin'
     | '/_authenticated/meus-palpites'
@@ -173,8 +173,8 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   EntrarRoute: typeof EntrarRoute
   PagamentoRoute: typeof PagamentoRoute
-  RankingRoute: typeof RankingRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
+  RankingRoute: typeof RankingRoute
   RegulamentoRoute: typeof RegulamentoRoute
   ApiPublicGetFixturesRoute: typeof ApiPublicGetFixturesRoute
   ApiPublicWebhooksMercadopagoRoute: typeof ApiPublicWebhooksMercadopagoRoute
@@ -210,18 +210,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PagamentoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ranking': {
-      id: '/ranking'
-      path: '/ranking'
-      fullPath: '/ranking'
-      preLoaderRoute: typeof RankingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/privacidade': {
       id: '/privacidade'
       path: '/privacidade'
       fullPath: '/privacidade'
       preLoaderRoute: typeof PrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ranking': {
+      id: '/ranking'
+      path: '/ranking'
+      fullPath: '/ranking'
+      preLoaderRoute: typeof RankingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/regulamento': {
@@ -289,8 +289,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   EntrarRoute: EntrarRoute,
   PagamentoRoute: PagamentoRoute,
-  RankingRoute: RankingRoute,
   PrivacidadeRoute: PrivacidadeRoute,
+  RankingRoute: RankingRoute,
   RegulamentoRoute: RegulamentoRoute,
   ApiPublicGetFixturesRoute: ApiPublicGetFixturesRoute,
   ApiPublicWebhooksMercadopagoRoute: ApiPublicWebhooksMercadopagoRoute,

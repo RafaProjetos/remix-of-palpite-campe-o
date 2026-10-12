@@ -1,0 +1,3 @@
+- [x] Ampliar os resultados da página inicial apenas no computador.
+- [x] Liberar consulta dos palpites dos dez primeiros durante e após a rodada nas duas listas de ranking, com proteção enquanto houver apostas abertas.
+- [x] Verificar consulta real e aplicar atualização obrigatória de segurança.

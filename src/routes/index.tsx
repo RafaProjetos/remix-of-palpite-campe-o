@@ -8,6 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Check, MessageCircle } from "lucide-react";
+import { Eye } from "lucide-react";
+import { useState } from "react";
+import { PublicPicksDialog } from "@/components/public-picks-dialog";
+import { canViewRoundPicks } from "@/lib/round-visibility";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -19,6 +23,8 @@ export const Route = createFileRoute("/")({
           "Palpite nos 10 jogos da rodada do Campeonato Brasileiro, pague R$ 50 e dispute o ranking da rodada e o ranking geral.",
       },
       { property: "og:title", content: "Palpite da Rodada — Bolão do Brasileirão" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       {
         property: "og:description",
         content: "Bolão da rodada do Brasileirão: 10 jogos, R$ 50 por aposta, ranking em tempo real.",
@@ -36,11 +42,13 @@ const LEAGUE_TABS = [
   { value: "ouro", label: "Ouro" },
 ];
 
-function LeagueRankingList({ roundId, leagueType }: { roundId: string | null; leagueType: string }) {
+function LeagueRankingList({ roundId, leagueType, canViewPicks }: { roundId: string | null; leagueType: string; canViewPicks: boolean }) {
+  const [participant, setParticipant] = useState<{ id: string; nome: string } | null>(null);
   const ranking = useQuery({
     queryKey: ["home-ranking", roundId, leagueType],
     queryFn: () => getRankings({ data: { roundId, leagueType } }),
     enabled: !!roundId,
+    refetchInterval: 30_000,
   });
 
   const rows = ranking.data?.round ?? [];
@@ -55,7 +63,7 @@ function LeagueRankingList({ roundId, leagueType }: { roundId: string | null; le
 
   return (
     <div className="space-y-3">
-      {rows.slice(0, 5).map((r: any, i: number) => (
+      {rows.slice(0, 10).map((r: any, i: number) => (
         <div key={r.user_id} className="group flex items-center justify-between rounded-xl bg-muted/50 p-4 transition-all hover:bg-muted">
           <div className="flex items-center gap-3">
             <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
@@ -63,15 +71,21 @@ function LeagueRankingList({ roundId, leagueType }: { roundId: string | null; le
             }`}>
               {i + 1}
             </span>
-            <span className="text-sm font-bold truncate max-w-[120px]">
-              {String(r.full_name ?? "").trim()}
-            </span>
+            {canViewPicks ? (
+              <Button variant="link" className="h-auto min-w-0 gap-1 p-0 text-left" title={`Visualizar palpites de ${r.full_name}`} onClick={() => setParticipant({ id: r.user_id, nome: String(r.full_name ?? "").trim() })}>
+                <span className="max-w-[120px] truncate text-sm font-bold">{String(r.full_name ?? "").trim()}</span>
+                <Eye className="h-3 w-3 shrink-0" />
+              </Button>
+            ) : (
+              <span className="text-sm font-bold truncate max-w-[120px]">{String(r.full_name ?? "").trim()}</span>
+            )}
           </div>
           <Badge variant="default" className="font-black text-primary-foreground shadow-sm">
             {r.total_points} pts
           </Badge>
         </div>
       ))}
+      <PublicPicksDialog roundId={roundId} leagueType={leagueType} participant={participant} onClose={() => setParticipant(null)} />
     </div>
   );
 }
@@ -163,7 +177,7 @@ function Home() {
                     />
                   </div>
                   <div className="flex min-w-0 shrink-0 flex-col items-center px-1 sm:px-4">
-                    <span className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-black text-primary mb-1 whitespace-nowrap sm:px-4 sm:py-2 sm:text-sm">
+                    <span className={`rounded-full bg-primary/10 px-3 py-1.5 text-xs font-black text-primary mb-1 whitespace-nowrap sm:px-4 sm:py-2 sm:text-sm ${m.home_score !== null && m.away_score !== null ? "lg:px-5 lg:py-2.5 lg:text-xl" : ""}`}>
                       {m.home_score !== null && m.away_score !== null
                         ? `${m.home_score} x ${m.away_score}`
                         : "VS"}
@@ -213,7 +227,7 @@ function Home() {
                 </TabsList>
                 {LEAGUE_TABS.map((t) => (
                   <TabsContent key={t.value} value={t.value}>
-                    <LeagueRankingList roundId={round?.id ?? null} leagueType={t.value} />
+                    <LeagueRankingList roundId={round?.id ?? null} leagueType={t.value} canViewPicks={canViewRoundPicks(round)} />
                   </TabsContent>
                 ))}
               </Tabs>

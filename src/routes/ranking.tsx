@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { getCurrentRound, getRankings, getLeagues, getPublicBetPicks } from "@/lib/palpite.functions";
+import { getCurrentRound, getRankings, getLeagues } from "@/lib/palpite.functions";
 import { SiteHeader } from "@/components/site-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,7 +9,9 @@ import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { CelebracaoCampeao } from "@/components/celebracao-campeao";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { PublicPicksDialog } from "@/components/public-picks-dialog";
+import { canViewRoundPicks } from "@/lib/round-visibility";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/ranking")({
   head: () => ({
@@ -70,18 +72,7 @@ function RankingPage() {
 
 
   const campeao = roundRows.length > 0 ? roundRows[0] : null;
-  const rodadaEncerrada = round?.status === "validated";
-
-  const palpitesQuery = useQuery({
-    queryKey: ["palpites-publicos", round?.id, activeLeagueType, participanteAberto?.id],
-    queryFn: () =>
-      getPublicBetPicks({
-        data: { roundId: round!.id, leagueType: activeLeagueType, userId: participanteAberto!.id },
-      }),
-    enabled: !!round?.id && !!participanteAberto?.id && rodadaEncerrada,
-  });
-  const detalhe: any = palpitesQuery.data;
-  const pickPor = (matchId: string) => (detalhe?.picks ?? []).find((p: any) => p.match_id === matchId);
+  const canViewPicks = canViewRoundPicks(round);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -113,7 +104,7 @@ function RankingPage() {
           </div>
         )}
 
-        <Tabs defaultValue="free" className="w-full" onValueChange={setActiveLeagueType}>
+        <Tabs defaultValue="free" className="w-full" onValueChange={(value) => { setParticipanteAberto(null); setActiveLeagueType(value); }}>
           <TabsList className="grid w-full grid-cols-4 h-12 mb-8">
             <TabsTrigger value="free" className="text-xs sm:text-sm">Free</TabsTrigger>
             <TabsTrigger value="bronze" className="text-xs sm:text-sm text-amber-700">Bronze</TabsTrigger>
@@ -186,11 +177,12 @@ function RankingPage() {
                             </TableCell>
                             <TableCell>
                               <div className="flex flex-col min-w-0">
-                                {rodadaEncerrada ? (
-                                  <button
-                                    type="button"
+                                {canViewPicks && topRows.some((row) => row.user_id === r.user_id) ? (
+                                  <Button
+                                    variant="link"
+                                    title={`Visualizar palpites de ${nomeDe(r)}`}
                                     onClick={() => setParticipanteAberto({ id: r.user_id, nome: nomeDe(r) })}
-                                    className="group flex items-center gap-1 text-left min-w-0"
+                                    className="group h-auto justify-start gap-1 p-0 text-left min-w-0"
                                   >
                                     <span className="font-medium truncate text-xs sm:text-sm underline decoration-dotted underline-offset-4 group-hover:text-primary">
                                       {nomeDe(r)}
@@ -199,7 +191,7 @@ function RankingPage() {
                                     {r.user_id === myUserId && (
                                       <span className="text-[9px] uppercase font-bold text-primary">Você</span>
                                     )}
-                                  </button>
+                                  </Button>
                                 ) : (
                                   <span className="font-medium truncate text-xs sm:text-sm">
                                     {nomeDe(r)}
@@ -270,55 +262,12 @@ function RankingPage() {
         </Tabs>
       </main>
 
-      <Dialog open={!!participanteAberto} onOpenChange={(o) => !o && setParticipanteAberto(null)}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="text-base sm:text-lg">
-              Palpites de {participanteAberto?.nome}
-            </DialogTitle>
-            <DialogDescription>
-              {activeLeague?.name ?? "Liga"} · Rodada {round?.number ?? ""}
-              {detalhe?.bet ? ` · ${detalhe.bet.total_points} pts` : ""}
-            </DialogDescription>
-          </DialogHeader>
-
-          {palpitesQuery.isLoading ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">Carregando palpites...</p>
-          ) : !detalhe?.bet ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">
-              Não há palpites disponíveis para este participante nesta liga.
-            </p>
-          ) : (
-            <div className="max-h-[60vh] space-y-2 overflow-y-auto pr-1">
-              {(detalhe.matches ?? []).map((m: any) => {
-                const p = pickPor(m.id);
-                return (
-                  <div key={m.id} className="rounded-md border p-2 text-xs sm:text-sm">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="min-w-0 flex-1 truncate">{m.home_team}</span>
-                      <span className="shrink-0 font-bold">
-                        {p ? `${p.home_score} x ${p.away_score}` : "—"}
-                      </span>
-                      <span className="min-w-0 flex-1 truncate text-right">{m.away_team}</span>
-                    </div>
-                    <div className="mt-1 flex items-center justify-between text-[11px] text-muted-foreground">
-                      <span>
-                        Resultado:{" "}
-                        {m.home_score !== null && m.away_score !== null
-                          ? `${m.home_score} x ${m.away_score}`
-                          : "não informado"}
-                      </span>
-                      <Badge variant={p && p.points > 0 ? "default" : "outline"} className="text-[10px]">
-                        {p ? `${p.points} pts` : "0 pts"}
-                      </Badge>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <PublicPicksDialog
+        roundId={round?.id ?? null}
+        leagueType={activeLeagueType}
+        participant={participanteAberto}
+        onClose={() => setParticipanteAberto(null)}
+      />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { canViewRoundPicks } from "@/lib/round-visibility";
 
 /* ---------------------------------- público --------------------------------- */
 
@@ -89,7 +90,7 @@ export const getRankings = createServerFn({ method: "GET" })
     };
   });
 
-/** Palpites de um participante, visíveis a todos apenas quando a rodada está validada. */
+/** Palpites públicos dos dez primeiros, somente após o fechamento das apostas. */
 export const getPublicBetPicks = createServerFn({ method: "GET" })
   .inputValidator((d: { roundId: string; leagueType: string; userId: string }) =>
     z
@@ -101,10 +102,18 @@ export const getPublicBetPicks = createServerFn({ method: "GET" })
 
     const { data: round } = await supabaseAdmin
       .from("rounds")
-      .select("id, number, status")
+      .select("id, number, status, closes_at")
       .eq("id", data.roundId)
       .maybeSingle();
-    if (!round || round.status !== "validated") {
+    if (!round || !canViewRoundPicks(round)) {
+      return { allowed: false as const, matches: [] as any[], picks: [] as any[], bet: null, name: null };
+    }
+
+    const { data: ranking, error: rankingError } = await supabaseAdmin.rpc("round_league_ranking", {
+      _round_id: data.roundId,
+      _league_type: data.leagueType as any,
+    });
+    if (rankingError || !(ranking as any[] | null)?.slice(0, 10).some((row) => row.user_id === data.userId)) {
       return { allowed: false as const, matches: [] as any[], picks: [] as any[], bet: null, name: null };
     }
 
