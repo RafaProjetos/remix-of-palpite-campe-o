@@ -17,7 +17,6 @@ import {
   adminSetPaid,
     adminSetRoundStatus,
     adminValidateRound,
-    adminSearchTeam,
     adminEndSeason,
     adminReopenRound,
     adminDeleteUser,
@@ -25,6 +24,8 @@ import {
     adminRemoveParticipantFromRanking,
    } from "@/lib/admin.functions";
 import { SERIE_A_TEAMS } from "@/lib/constants";
+import { getTeamCrest, TEAM_CRESTS_DOWNLOAD } from "@/lib/team-crests";
+import { TeamCrestSelect } from "@/components/team-crest-select";
 import { SiteHeader } from "@/components/site-header";
 import { TeamBadge } from "@/components/team-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,6 +53,8 @@ export const Route = createFileRoute("/_authenticated/admin")({
       { name: "description", content: "Painel do administrador: participantes, arrecadação e validador." },
       { property: "og:title", content: "Administração — Palpite da Rodada" },
       { property: "og:description", content: "Gerencie a rodada, os pagamentos e os resultados." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Admin,
@@ -73,7 +76,6 @@ function Admin() {
   const validar = useServerFn(adminValidateRound);
   const marcarPago = useServerFn(adminSetPaid);
   const mudarStatus = useServerFn(adminSetRoundStatus);
-  const buscarEscudo = useServerFn(adminSearchTeam);
   const encerrarTemporadaFn = useServerFn(adminEndSeason);
   const reabrirRodadaFn = useServerFn(adminReopenRound);
   const excluirUsuarioFn = useServerFn(adminDeleteUser);
@@ -397,8 +399,8 @@ function Admin() {
                         id: m.id,
                         homeTeam: m.home_team,
                         awayTeam: m.away_team,
-                        homeLogo: m.home_logo || "",
-                        awayLogo: m.away_logo || "",
+                        homeLogo: getTeamCrest(m.home_team) || m.home_logo || "",
+                        awayLogo: getTeamCrest(m.away_team) || m.away_logo || "",
                       })),
                     );
                     setModo("edit-matches");
@@ -407,6 +409,11 @@ function Admin() {
                   Editar Times/Escudos
                 </Button>
               )}
+              <Button variant="outline" className="w-full sm:w-auto" asChild>
+                <a href={TEAM_CRESTS_DOWNLOAD} download="escudos-serie-a.zip">
+                  <Download className="h-4 w-4" /> Baixar escudos da Série A
+                </a>
+              </Button>
               {roundId && (
                 <Button
                   variant="secondary"
@@ -447,9 +454,6 @@ function Admin() {
               <CardTitle>Configurar Times da Rodada</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Informe os nomes e URLs dos escudos para os 10 jogos da rodada.
-              </p>
               <div className="grid gap-4 sm:grid-cols-2">
                 {partidasEdit.map((p, i) => (
                   <div key={i} className="space-y-3 rounded-lg border border-border p-4">
@@ -459,26 +463,11 @@ function Admin() {
                         <Label className="text-xs">Time Mandante</Label>
                         <Select
                           value={p.homeTeam}
-                          onValueChange={async (val) => {
-                            const newPartidas = [...partidasEdit];
-                            if (newPartidas[i]) newPartidas[i].homeTeam = val;
-                            setPartidasEdit(newPartidas);
-
-                            try {
-                              const res = await buscarEscudo({ data: { name: val } });
-                              if (res?.logo) {
-                                setPartidasEdit((prev) => {
-                                  const current = [...prev];
-                                  if (current[i]) current[i].homeLogo = res.logo;
-                                  return current;
-                                });
-                              }
-                            } catch (err) {
-                              console.error(err);
-                            }
-                          }}
+                          onValueChange={(val) => setPartidasEdit((prev) => prev.map((match, index) =>
+                            index === i ? { ...match, homeTeam: val, homeLogo: getTeamCrest(val) ?? "" } : match
+                          ))}
                         >
-                          <SelectTrigger className="h-9">
+                          <SelectTrigger aria-label={`Time mandante do jogo ${i + 1}`} className="h-9 min-w-0 [&>span]:truncate">
                             <SelectValue placeholder="Selecione..." />
                           </SelectTrigger>
                           <SelectContent>
@@ -494,26 +483,11 @@ function Admin() {
                         <Label className="text-xs">Time Visitante</Label>
                         <Select
                           value={p.awayTeam}
-                          onValueChange={async (val) => {
-                            const newPartidas = [...partidasEdit];
-                            if (newPartidas[i]) newPartidas[i].awayTeam = val;
-                            setPartidasEdit(newPartidas);
-
-                            try {
-                              const res = await buscarEscudo({ data: { name: val } });
-                              if (res?.logo) {
-                                setPartidasEdit((prev) => {
-                                  const current = [...prev];
-                                  if (current[i]) current[i].awayLogo = res.logo;
-                                  return current;
-                                });
-                              }
-                            } catch (err) {
-                              console.error(err);
-                            }
-                          }}
+                          onValueChange={(val) => setPartidasEdit((prev) => prev.map((match, index) =>
+                            index === i ? { ...match, awayTeam: val, awayLogo: getTeamCrest(val) ?? "" } : match
+                          ))}
                         >
-                          <SelectTrigger className="h-9">
+                          <SelectTrigger aria-label={`Time visitante do jogo ${i + 1}`} className="h-9 min-w-0 [&>span]:truncate">
                             <SelectValue placeholder="Selecione..." />
                           </SelectTrigger>
                           <SelectContent>
@@ -527,29 +501,25 @@ function Admin() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                       <div className="space-y-1">
-                        <Label className="text-xs">URL Escudo Mandante</Label>
-                        <Input
-                          placeholder="https://..."
+                        <Label className="text-xs">Escudo Mandante</Label>
+                        <TeamCrestSelect
+                          label={`Escudo mandante do jogo ${i + 1}`}
                           value={p.homeLogo}
-                          onChange={(e) => {
-                            const newPartidas = [...partidasEdit];
-                            if (newPartidas[i]) newPartidas[i].homeLogo = e.target.value;
-                            setPartidasEdit(newPartidas);
-                          }}
+                          onChange={(logo) => setPartidasEdit((prev) => prev.map((match, index) =>
+                            index === i ? { ...match, homeLogo: logo } : match
+                          ))}
                         />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-xs">URL Escudo Visitante</Label>
-                        <Input
-                          placeholder="https://..."
+                        <Label className="text-xs">Escudo Visitante</Label>
+                        <TeamCrestSelect
+                          label={`Escudo visitante do jogo ${i + 1}`}
                           value={p.awayLogo}
-                          onChange={(e) => {
-                            const newPartidas = [...partidasEdit];
-                            if (newPartidas[i]) newPartidas[i].awayLogo = e.target.value;
-                            setPartidasEdit(newPartidas);
-                          }}
+                          onChange={(logo) => setPartidasEdit((prev) => prev.map((match, index) =>
+                            index === i ? { ...match, awayLogo: logo } : match
+                          ))}
                         />
                       </div>
                     </div>
@@ -572,7 +542,7 @@ function Admin() {
                       if (valid.length === 0) throw new Error("Preencha ao menos um jogo.");
                       await salvarPartidas({ 
                         data: { 
-                          roundId: roundId!, 
+                          roundId,
                           matches: valid as any,
                           closesAt: new Date(dataFechamento).toISOString()
                         } 
