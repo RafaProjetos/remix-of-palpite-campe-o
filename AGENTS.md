@@ -11,3 +11,4 @@
 
 - Public pick visibility uses the shared round-visibility rule and server-side top-ten ranking verification; this keeps both ranking surfaces consistent without revealing picks while betting is open.
 - Both ranking surfaces use the shared public-picks dialog so match results, loading states, and live refresh behavior stay consistent.
+- Manual round creation and editing use the shared team-crest catalog of Lovable asset pointers, not runtime logo searches; this keeps real crests available independently of external providers.
