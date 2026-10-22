@@ -395,7 +395,12 @@ function Admin() {
                   disabled={ocupado}
                   onClick={() => {
                     setPartidasEdit(
-                      matches.map((m) => ({
+                      matches.length === 0 ? Array.from({ length: 10 }, () => ({
+                        homeTeam: "",
+                        awayTeam: "",
+                        homeLogo: "",
+                        awayLogo: "",
+                      })) : matches.map((m) => ({
                         id: m.id,
                         homeTeam: m.home_team,
                         awayTeam: m.away_team,
