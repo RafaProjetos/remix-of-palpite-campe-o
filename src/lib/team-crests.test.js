@@ -11,7 +11,7 @@ describe('biblioteca permanente de escudos', () => {
     }
   });
   test('o escudo do Remo está disponível e nomes são normalizados', () => {
-    expect(getTeamCrest(' remo ')).toBe(TEAM_CRESTS.REMO);
+    expect(getTeamCrest(' remo ')).toBe(TEAM_CRESTS['REMO']);
     expect(getTeamCrest(' remo ')).toContain('/remo.png');
     expect(getTeamCrest('time inexistente')).toBeUndefined();
   });
