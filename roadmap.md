@@ -1,5 +1,5 @@
 - [x] Ampliar os resultados da página inicial apenas no computador.
 - [x] Liberar consulta dos palpites dos dez primeiros durante e após a rodada nas duas listas de ranking, com proteção enquanto houver apostas abertas.
 - [x] Verificar consulta real e aplicar atualização obrigatória de segurança.
-- [ ] Disponibilizar os 20 escudos reais da Série A e pacote para baixar.
-- [ ] Integrar seleção permanente de escudos na criação/edição manual e verificar no admin.
+- [x] Disponibilizar os 20 escudos reais da Série A e pacote para baixar.
+- [x] Integrar seleção permanente de escudos na criação/edição manual e verificar no admin.
