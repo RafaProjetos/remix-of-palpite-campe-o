@@ -3,7 +3,7 @@ import { TEAM_CRESTS } from '@/lib/team-crests';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export function TeamCrestSelect({ value, onChange, label }: {
-  value?: string;
+  value?: string | undefined;
   onChange: (value: string) => void;
   label: string;
 }) {
