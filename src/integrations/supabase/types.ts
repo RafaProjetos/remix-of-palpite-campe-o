@@ -176,6 +176,7 @@ export type Database = {
           away_score: number | null
           away_team: string
           created_at: string
+          excluded_from_round: boolean
           external_id: string | null
           home_logo: string | null
           home_score: number | null
@@ -190,6 +191,7 @@ export type Database = {
           away_score?: number | null
           away_team: string
           created_at?: string
+          excluded_from_round?: boolean
           external_id?: string | null
           home_logo?: string | null
           home_score?: number | null
@@ -204,6 +206,7 @@ export type Database = {
           away_score?: number | null
           away_team?: string
           created_at?: string
+          excluded_from_round?: boolean
           external_id?: string | null
           home_logo?: string | null
           home_score?: number | null
@@ -359,6 +362,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_save_round_matches: {
+        Args: { _closes_at: string; _matches: Json; _round_id: string }
+        Returns: undefined
+      }
       compute_pick_points: {
         Args: { p_away: number; p_home: number; r_away: number; r_home: number }
         Returns: number

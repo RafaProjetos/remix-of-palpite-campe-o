@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trophy, Users, Info } from "lucide-react";
 import { traduzirErro } from "@/lib/mensagens";
 import { useSessao } from "@/hooks/use-sessao";
+import { isEligibleMatch } from "@/lib/match-participation";
 
 export const Route = createFileRoute("/_authenticated/palpitar")({
   head: () => ({
@@ -23,6 +24,8 @@ export const Route = createFileRoute("/_authenticated/palpitar")({
       { name: "description", content: "Escolha sua liga, informe o placar dos 10 jogos e confirme sua aposta." },
       { property: "og:title", content: "Meu palpite — Palpite da Rodada" },
       { property: "og:description", content: "Participe das ligas gratuitas e pagas e ganhe prêmios." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Palpitar,
@@ -95,7 +98,14 @@ function Palpitar() {
   }, [aposta.data]);
 
   const matches = (rodada.data?.matches ?? []) as any[];
+  // IDs e elegibilidade sempre vêm da rodada; a API complementa datas, não a configuração do ADM.
+  const currentMatches = matches.map((match) => {
+    const fixture = fixturesQuery.data?.fixtures?.find((f: any) => String(f.id) === String(match.external_id) || f.id === match.id);
+    return { ...fixture, ...match };
+  });
   const pago = aposta.data?.bet?.status === "paid";
+  const savedMatchIds = new Set((aposta.data?.picks ?? []).map((pick: any) => pick.match_id));
+  const hasNewMatches = pago && currentMatches.some((match) => isEligibleMatch(match) && !savedMatchIds.has(match.id));
   const closesAt = rodada.data?.round?.closes_at ? new Date(rodada.data.round.closes_at) : null;
   const isClosed = !!(rodada.data?.round?.status !== "open" || (closesAt && closesAt < new Date()));
 
@@ -105,9 +115,13 @@ function Palpitar() {
   }
 
   async function salvarPalpite() {
-    if (!activeLeague) return;
-    const currentMatches = fixturesQuery.data?.fixtures || matches;
-    const picks = currentMatches.map((m: any) => ({
+    if (!activeLeague || !roundId) return;
+    const eligibleMatches = currentMatches.filter(isEligibleMatch);
+    if (!eligibleMatches.length || eligibleMatches.some((m) => !placares[m.id]?.home || !placares[m.id]?.away)) {
+      toast.error("Preencha o placar de todos os jogos válidos da rodada.");
+      return;
+    }
+    const picks = eligibleMatches.map((m: any) => ({
       matchId: (m.id || m.match_id) as string,
       home: Number(placares[m.id]?.home ?? ""),
       away: Number(placares[m.id]?.away ?? ""),
@@ -118,13 +132,13 @@ function Palpitar() {
     }
     setEnviando(true);
     try {
-      const { betId } = await salvar({ data: { roundId: roundId!, leagueId: activeLeague.id, picks } });
+      const { betId } = await salvar({ data: { roundId, leagueId: activeLeague.id, picks } });
       
-      if (activeLeague.type !== 'free') {
+      if (activeLeague.type !== 'free' && !pago) {
         const { initPoint } = await pagar({ data: { betId, origin: window.location.origin } });
         window.location.href = initPoint;
       } else {
-        toast.success("Seus palpites foram salvos na Liga Free!");
+        toast.success(pago ? "Palpites dos novos jogos salvos!" : "Seus palpites foram salvos na Liga Free!");
         await aposta.refetch();
         navigate({ to: "/meus-palpites" });
       }
@@ -282,12 +296,13 @@ function Palpitar() {
               <CardContent className="space-y-4 p-2 sm:p-6">
                 {fixturesQuery.isLoading && <p className="text-center py-8">Carregando jogos...</p>}
                 
-                {!fixturesQuery.isLoading && (fixturesQuery.data?.fixtures || matches).map((f: any) => {
+                {!fixturesQuery.isLoading && currentMatches.map((f: any) => {
                   const matchId = f.id || f.match_id;
-                  const homeName = f.homeTeam?.name || f.home_team;
-                  const homeLogo = f.homeTeam?.logo || f.home_logo;
-                  const awayName = f.awayTeam?.name || f.away_team;
-                  const awayLogo = f.awayTeam?.logo || f.away_logo;
+                  const homeName = f.home_team;
+                  const homeLogo = f.home_logo;
+                  const awayName = f.away_team;
+                  const awayLogo = f.away_logo;
+                  const informational = !isEligibleMatch(f);
 
                   return (
                     <div key={matchId} className="flex flex-col rounded-lg border border-border p-3 space-y-3">
@@ -317,7 +332,8 @@ function Palpitar() {
                           <Input
                             className="h-7 w-8 px-0.5 text-center text-xs sm:h-10 sm:w-12 sm:px-3 sm:text-base"
                             inputMode="numeric"
-                            disabled={pago || isClosed}
+                            aria-label={`Placar ${homeName}`}
+                            disabled={(pago && savedMatchIds.has(matchId)) || isClosed || informational}
                             value={placares[matchId]?.home ?? ""}
                             onChange={(e) => setPlacar(matchId, "home", e.target.value)}
                           />
@@ -325,7 +341,8 @@ function Palpitar() {
                           <Input
                             className="h-7 w-8 px-0.5 text-center text-xs sm:h-10 sm:w-12 sm:px-3 sm:text-base"
                             inputMode="numeric"
-                            disabled={pago || isClosed}
+                            aria-label={`Placar ${awayName}`}
+                            disabled={(pago && savedMatchIds.has(matchId)) || isClosed || informational}
                             value={placares[matchId]?.away ?? ""}
                             onChange={(e) => setPlacar(matchId, "away", e.target.value)}
                           />
@@ -341,6 +358,7 @@ function Palpitar() {
                           />
                         </div>
                       </div>
+                      {informational && <p className="text-center text-xs font-semibold text-muted-foreground">Esse jogo não vale para essa rodada</p>}
                     </div>
                   );
                 })}
@@ -359,7 +377,7 @@ function Palpitar() {
                     </div>
                   )}
                   
-                  {pago ? (
+                  {pago && !hasNewMatches ? (
                     <div className="rounded-md bg-green-500/10 p-4 border border-green-500/20 text-center">
                       <p className="text-sm font-bold text-green-700">
                         Seus palpites na {activeLeague?.name} estão confirmados!
@@ -373,7 +391,7 @@ function Palpitar() {
                       onClick={salvarPalpite}
                       disabled={enviando || isClosed || fixturesQuery.isLoading}
                     >
-                      {enviando ? "Processando..." : activeLeagueType === 'free' ? "Salvar Palpite Gratuito" : `Participar da Liga (R$ ${Number(activeLeague?.entry_fee).toFixed(2)})`}
+                      {enviando ? "Processando..." : hasNewMatches ? "Salvar palpites dos novos jogos" : activeLeagueType === 'free' ? "Salvar Palpite Gratuito" : `Participar da Liga (R$ ${Number(activeLeague?.entry_fee).toFixed(2)})`}
                     </Button>
                   )}
                 </div>

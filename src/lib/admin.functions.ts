@@ -169,7 +169,7 @@ export const adminSaveMatches = createServerFn({ method: "POST" })
     (d: {
       roundId: string;
       closesAt: string;
-      matches: { id?: string; homeTeam: string; awayTeam: string; homeLogo?: string; awayLogo?: string }[];
+      matches: { id?: string; homeTeam: string; awayTeam: string; homeLogo?: string; awayLogo?: string; excludedFromRound?: boolean }[];
     }) =>
       z
         .object({
@@ -183,28 +183,22 @@ export const adminSaveMatches = createServerFn({ method: "POST" })
                 awayTeam: z.string().trim().min(2).max(60),
                 homeLogo: z.string().trim().max(500).optional(),
                 awayLogo: z.string().trim().max(500).optional(),
+                excludedFromRound: z.boolean().default(false),
               }),
             )
-            .min(1)
-            .max(20),
+            .min(1),
         })
         .parse(d),
   )
   .handler(async ({ context, data }) => {
     await assertAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.from("rounds").update({ closes_at: data.closesAt }).eq("id", data.roundId);
-    await supabaseAdmin.from("matches").delete().eq("round_id", data.roundId);
-    const rows = data.matches.map((m, i) => ({
-      round_id: data.roundId,
-      position: i + 1,
-      home_team: m.homeTeam,
-      away_team: m.awayTeam,
-      home_logo: m.homeLogo || null,
-      away_logo: m.awayLogo || null,
-    }));
-    const ins = await supabaseAdmin.from("matches").insert(rows);
-    if (ins.error) throw new Error(ins.error.message);
+    const { error } = await supabaseAdmin.rpc("admin_save_round_matches", {
+      _round_id: data.roundId,
+      _closes_at: data.closesAt,
+      _matches: data.matches,
+    });
+    if (error) throw new Error(error.message);
     return { ok: true };
   });
 

@@ -250,7 +250,7 @@ function MeusPalpites() {
               <CardContent className="space-y-3 p-2 sm:p-6">
                 {matches.map((m) => {
                   const pick = pickMap.get(m.id);
-                  const hasResult = m.home_score !== null && m.away_score !== null;
+                  const hasResult = !m.excluded_from_round && m.home_score !== null && m.away_score !== null;
                   const points = pick?.points ?? 0;
                   
                   return (
@@ -280,15 +280,15 @@ function MeusPalpites() {
                         <div className="flex flex-col items-center gap-1">
                           <div className={`flex items-center gap-1 sm:gap-2 transition-all duration-300 ${isPending ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
                             <div className="flex h-8 w-9 items-center justify-center rounded bg-background font-black text-primary shadow-sm ring-1 ring-primary/20 sm:h-10 sm:w-11 sm:text-lg">
-                              {pick?.home_score ?? "-"}
+                              {m.excluded_from_round ? "-" : pick?.home_score ?? "-"}
                             </div>
                             <span className="text-xs font-bold text-muted-foreground">x</span>
                             <div className="flex h-8 w-9 items-center justify-center rounded bg-background font-black text-primary shadow-sm ring-1 ring-primary/20 sm:h-10 sm:w-11 sm:text-lg">
-                              {pick?.away_score ?? "-"}
+                              {m.excluded_from_round ? "-" : pick?.away_score ?? "-"}
                             </div>
                           </div>
                           <span className="text-[9px] font-bold uppercase tracking-tighter text-muted-foreground/70 sm:text-[10px]">
-                            Seu Palpite
+                            {m.excluded_from_round ? "Informativo" : "Seu Palpite"}
                           </span>
                         </div>
 
@@ -302,6 +302,7 @@ function MeusPalpites() {
                           )}
                         </div>
                       </div>
+                      {m.excluded_from_round && <p className="mt-2 text-center text-xs font-semibold text-muted-foreground">Esse jogo não vale para essa rodada</p>}
                     </div>
                   );
                 })}

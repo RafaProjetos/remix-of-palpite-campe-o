@@ -3,3 +3,5 @@
 - [x] Verificar consulta real e aplicar atualização obrigatória de segurança.
 - [x] Disponibilizar os 20 escudos reais da Série A e pacote para baixar.
 - [x] Integrar seleção permanente de escudos na criação/edição manual e verificar no admin.
+- [ ] Jogos informativos sem palpites/pontos e inclusão de jogos preservando os existentes.
+- [ ] Verificar edição e exibição nas telas de palpites.

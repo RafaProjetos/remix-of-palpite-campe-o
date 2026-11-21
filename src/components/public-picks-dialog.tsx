@@ -41,7 +41,7 @@ export function PublicPicksDialog({ roundId, leagueType, participant, onClose }:
         ) : (
           <div className="max-h-[60vh] space-y-2 overflow-y-auto pr-1">
             {detail.matches.map((match: any) => {
-              const pick = detail.picks.find((item: any) => item.match_id === match.id);
+              const pick = match.excluded_from_round ? undefined : detail.picks.find((item: any) => item.match_id === match.id);
               return (
                 <div key={match.id} className="rounded-md border p-2 text-xs sm:text-sm">
                   <div className="flex items-center justify-between gap-2">
@@ -49,10 +49,10 @@ export function PublicPicksDialog({ roundId, leagueType, participant, onClose }:
                     <span className="shrink-0 font-bold">{pick ? `${pick.home_score} x ${pick.away_score}` : "—"}</span>
                     <span className="min-w-0 flex-1 truncate text-right">{match.away_team}</span>
                   </div>
-                  <div className="mt-1 flex items-center justify-between text-[11px] text-muted-foreground">
+                  {match.excluded_from_round ? <p className="mt-1 text-xs text-muted-foreground">Esse jogo não vale para essa rodada</p> : <div className="mt-1 flex items-center justify-between text-[11px] text-muted-foreground">
                     <span>Resultado: {match.home_score !== null && match.away_score !== null ? `${match.home_score} x ${match.away_score}` : "não informado"}</span>
                     <Badge variant={pick && pick.points > 0 ? "default" : "outline"} className="text-[10px]">{pick ? `${pick.points} pts` : "0 pts"}</Badge>
-                  </div>
+                  </div>}
                 </div>
               );
             })}

@@ -182,6 +182,7 @@ function Home() {
                         ? `${m.home_score} x ${m.away_score}`
                         : "VS"}
                     </span>
+                    {m.excluded_from_round && <span className="max-w-28 text-center text-[10px] font-semibold text-muted-foreground">Esse jogo não vale para essa rodada</span>}
                     {m.kickoff_at && (
                       <span className="text-[9px] sm:text-[10px] text-muted-foreground font-medium uppercase whitespace-nowrap">
                         {new Date(m.kickoff_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}

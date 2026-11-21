@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { canViewRoundPicks } from "@/lib/round-visibility";
+import { validateRoundPicks } from "@/lib/match-participation";
 
 /* ---------------------------------- público --------------------------------- */
 
@@ -140,7 +141,7 @@ export const getPublicBetPicks = createServerFn({ method: "GET" })
     const [{ data: matches }, { data: picks }, { data: profile }, authUser] = await Promise.all([
       supabaseAdmin
         .from("matches")
-        .select("id, position, home_team, away_team, home_logo, away_logo, home_score, away_score")
+        .select("id, position, home_team, away_team, home_logo, away_logo, home_score, away_score, excluded_from_round")
         .eq("round_id", data.roundId)
         .order("position"),
       supabaseAdmin.from("bet_picks").select("*").eq("bet_id", bet.id),
@@ -326,8 +327,7 @@ export const saveBet = createServerFn({ method: "POST" })
               away: z.number().int().min(0).max(20),
             }),
           )
-          .min(1)
-          .max(20),
+          .min(1),
       })
       .parse(d),
   )
@@ -367,13 +367,33 @@ export const saveBet = createServerFn({ method: "POST" })
     }
 
     const league = await supabase.from("leagues").select("*").eq("id", data.leagueId).single();
+    const roundMatches = await supabase.from("matches").select("id, excluded_from_round").eq("round_id", data.roundId);
+    if (roundMatches.error) throw new Error(roundMatches.error.message);
+    validateRoundPicks(roundMatches.data ?? [], data.picks);
     if (league.error) throw new Error("Liga não encontrada.");
 
     let bet = (
       await supabase.from("bets").select("*").eq("round_id", data.roundId).eq("user_id", userId).eq("league_id", data.leagueId).maybeSingle()
     ).data;
 
-    if (bet?.status === "paid") throw new Error("Sua aposta desta liga já foi paga e não pode ser alterada.");
+    if (bet?.status === "paid") {
+      const confirmedBetId = bet.id;
+      const existing = await supabase.from("bet_picks").select("match_id, home_score, away_score").eq("bet_id", bet.id);
+      if (existing.error) throw new Error(existing.error.message);
+      const existingById = new Map((existing.data ?? []).map((pick) => [pick.match_id, pick]));
+      const newPicks = data.picks.filter((pick) => !existingById.has(pick.matchId));
+      if (!newPicks.length || data.picks.some((pick) => {
+        const saved = existingById.get(pick.matchId);
+        return saved && (saved.home_score !== pick.home || saved.away_score !== pick.away);
+      })) throw new Error("Os palpites confirmados são preservados. Preencha apenas os jogos novos.");
+      // A identidade e a titularidade da aposta foram verificadas pelo cliente autenticado acima.
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const added = await supabaseAdmin.from("bet_picks").insert(newPicks.map((pick) => ({
+        bet_id: confirmedBetId, match_id: pick.matchId, home_score: pick.home, away_score: pick.away,
+      })));
+      if (added.error) throw new Error(added.error.message);
+      return { betId: confirmedBetId };
+    }
 
     if (!bet) {
       const created = await supabase
@@ -392,11 +412,13 @@ export const saveBet = createServerFn({ method: "POST" })
       bet = created.data;
     }
 
-    const del = await supabase.from("bet_picks").delete().eq("bet_id", bet!.id);
+    if (!bet) throw new Error("Não foi possível salvar o palpite.");
+    const betId = bet.id;
+    const del = await supabase.from("bet_picks").delete().eq("bet_id", betId);
     if (del.error) throw new Error(del.error.message);
 
     const rows = data.picks.map((p) => ({
-      bet_id: bet!.id,
+      bet_id: betId,
       match_id: p.matchId,
       home_score: p.home,
       away_score: p.away,
@@ -404,7 +426,7 @@ export const saveBet = createServerFn({ method: "POST" })
     const ins = await supabase.from("bet_picks").insert(rows);
     if (ins.error) throw new Error(ins.error.message);
 
-    return { betId: bet!.id as string };
+    return { betId };
   });
 
 export const startPayment = createServerFn({ method: "POST" })

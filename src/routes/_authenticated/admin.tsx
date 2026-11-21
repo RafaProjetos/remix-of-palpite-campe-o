@@ -26,6 +26,7 @@ import {
 import { SERIE_A_TEAMS } from "@/lib/constants";
 import { getTeamCrest, TEAM_CRESTS_DOWNLOAD } from "@/lib/team-crests";
 import { TeamCrestSelect } from "@/components/team-crest-select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { SiteHeader } from "@/components/site-header";
 import { TeamBadge } from "@/components/team-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -93,7 +94,7 @@ function Admin() {
   const [modo, setModo] = useState<Modo>("none");
   const [resultados, setResultados] = useState<Record<string, { home: string; away: string }>>({});
   const [partidasEdit, setPartidasEdit] = useState<
-    { id?: string; homeTeam: string; awayTeam: string; homeLogo?: string; awayLogo?: string }[]
+    { id?: string; homeTeam: string; awayTeam: string; homeLogo?: string; awayLogo?: string; excludedFromRound?: boolean }[]
   >([]);
   const [betAberta, setBetAberta] = useState<any | null>(null);
   const [picks, setPicks] = useState<any[]>([]);
@@ -394,6 +395,9 @@ function Admin() {
                   className="w-full sm:w-auto"
                   disabled={ocupado}
                   onClick={() => {
+                    setDataFechamento(rodada.data?.round?.closes_at
+                      ? new Date(new Date(rodada.data.round.closes_at).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0,16)
+                      : "");
                     setPartidasEdit(
                       matches.length === 0 ? Array.from({ length: 10 }, () => ({
                         homeTeam: "",
@@ -406,6 +410,7 @@ function Admin() {
                         awayTeam: m.away_team,
                         homeLogo: getTeamCrest(m.home_team) || m.home_logo || "",
                         awayLogo: getTeamCrest(m.away_team) || m.away_logo || "",
+                        excludedFromRound: m.excluded_from_round === true,
                       })),
                     );
                     setModo("edit-matches");
@@ -463,6 +468,14 @@ function Admin() {
                 {partidasEdit.map((p, i) => (
                   <div key={i} className="space-y-3 rounded-lg border border-border p-4">
                     <p className="text-xs font-bold uppercase text-muted-foreground">Jogo {i + 1}</p>
+                    <div className="flex items-start gap-2">
+                      <Checkbox id={`informativo-${i}`} checked={p.excludedFromRound ?? false}
+                        onCheckedChange={(checked) => setPartidasEdit((prev) => prev.map((match, index) =>
+                          index === i ? { ...match, excludedFromRound: checked === true } : match
+                        ))} />
+                      <Label htmlFor={`informativo-${i}`} className="text-xs leading-5">Jogo apenas informativo</Label>
+                    </div>
+                    {p.excludedFromRound && <p className="text-xs font-semibold text-muted-foreground">Esse jogo não vale para essa rodada</p>}
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">
                         <Label className="text-xs">Time Mandante</Label>
@@ -531,7 +544,12 @@ function Admin() {
                   </div>
                 ))}
               </div>
-              <div className="flex justify-end gap-3">
+              <div className="flex flex-wrap justify-end gap-3">
+                {rodada.data?.round?.status === "open" && (!rodada.data.round.closes_at || new Date(rodada.data.round.closes_at) > new Date()) && (
+                  <Button variant="outline" onClick={() => setPartidasEdit((prev) => [...prev, {
+                    homeTeam: "", awayTeam: "", homeLogo: "", awayLogo: "", excludedFromRound: false,
+                  }])}>Adicionar jogo</Button>
+                )}
                 <Button variant="ghost" onClick={() => setModo("none")}>
                   Cancelar
                 </Button>
