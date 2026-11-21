@@ -27,6 +27,8 @@ export const Route = createFileRoute("/entrar")({
       },
       { property: "og:title", content: "Entrar — Palpite da Rodada" },
       { property: "og:description", content: "Acesse sua conta para palpitar na rodada." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Entrar,

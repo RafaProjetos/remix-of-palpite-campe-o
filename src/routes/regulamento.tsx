@@ -22,6 +22,8 @@ export const Route = createFileRoute("/regulamento")({
       },
       { property: "og:title", content: "Regulamento Oficial — Palpite da Rodada" },
       { property: "og:description", content: "Informações detalhadas sobre o funcionamento e participação no bolão." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Regulamento,

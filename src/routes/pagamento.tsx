@@ -16,6 +16,8 @@ export const Route = createFileRoute("/pagamento")({
       { name: "description", content: "Situação do pagamento da sua aposta no Palpite da Rodada." },
       { property: "og:title", content: "Pagamento — Palpite da Rodada" },
       { property: "og:description", content: "Confirmação do pagamento da aposta da rodada." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   validateSearch: (search: Record<string, unknown>) => ({

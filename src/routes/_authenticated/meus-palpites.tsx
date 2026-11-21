@@ -19,6 +19,10 @@ export const Route = createFileRoute("/_authenticated/meus-palpites")({
     meta: [
       { title: "Meus Palpites — Palpite da Rodada" },
       { name: "description", content: "Visualize seus palpites e acompanhe sua pontuação." },
+      { property: "og:title", content: "Meus Palpites — Palpite da Rodada" },
+      { property: "og:description", content: "Visualize seus palpites e acompanhe sua pontuação." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: MeusPalpites,
